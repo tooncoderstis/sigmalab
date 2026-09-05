@@ -1,0 +1,346 @@
+// ============================================================
+// PRISMA SCHEMA — Portal Belajar (Dicoding-like)
+// Stack: Next.js + PostgreSQL + Prisma
+// Payment: Mayar
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  LEARNER
+  REVIEWER
+  ADMIN
+}
+
+enum CourseLevel {
+  PEMULA
+  MENENGAH
+  LANJUTAN
+}
+
+enum LessonType {
+  VIDEO
+  QUIZ
+  SUBMISSION
+  ARTICLE
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+// iPaymu status: berdasarkan callback iPaymu (biasanya "berhasil", "pending", "gagal")
+// disimpan sebagai enum internal yang sudah dinormalisasi
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  EXPIRED
+}
+
+enum PaymentMethod {
+  VA_BCA
+  VA_MANDIRI
+  VA_BNI
+  VA_BRI
+  QRIS
+  BANK_TRANSFER
+  CREDIT_CARD
+  OTHER
+}
+
+// ============================================================
+// USER & AUTH
+// ============================================================
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  password      String? // nullable kalau pakai OAuth
+  avatarUrl     String?
+  role          Role     @default(LEARNER)
+  isPremium     Boolean  @default(false) // shortcut flag, tapi tetap cek Enrollment/Subscription utk akses akurat
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  enrollments   Enrollment[]
+  progresses    Progress[]
+  quizAttempts  QuizAttempt[]
+  submissions   Submission[]       @relation("SubmissionOwner")
+  reviewedSubs  Submission[]       @relation("SubmissionReviewer")
+  certificates  Certificate[]
+  payments      Payment[]
+  courseReviews CourseReview[]
+
+  @@index([email])
+}
+
+// ============================================================
+// COURSE STRUCTURE: Course -> Module -> Lesson -> (Quiz | Submission)
+// ============================================================
+
+model Category {
+  id      String   @id @default(cuid())
+  name    String   @unique
+  slug    String   @unique
+  courses Course[]
+}
+
+model Course {
+  id            String      @id @default(cuid())
+  title         String
+  slug          String      @unique
+  description   String
+  thumbnailUrl  String?
+  level         CourseLevel @default(PEMULA)
+  isPremium     Boolean     @default(false)
+  price         Int         @default(0) // dalam Rupiah, 0 kalau gratis
+  isPublished   Boolean     @default(false)
+  categoryId    String
+  category      Category    @relation(fields: [categoryId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  modules       Module[]
+  enrollments   Enrollment[]
+  certificates  Certificate[]
+  payments      Payment[]
+  reviews       CourseReview[]
+
+  @@index([categoryId])
+  @@index([slug])
+}
+
+model Module {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title     String
+  order     Int // urutan modul dalam course
+
+  lessons   Lesson[]
+
+  @@index([courseId])
+  @@unique([courseId, order])
+}
+
+model Lesson {
+  id        String     @id @default(cuid())
+  moduleId  String
+  module    Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title     String
+  order     Int // urutan lesson dalam module
+  type      LessonType
+
+  // Konten sesuai type
+  videoUrl      String? // untuk type VIDEO (embed Youtube/Vimeo/Mux)
+  articleBody   String? // untuk type ARTICLE (markdown/html)
+  passingScore  Int?    @default(80) // untuk type QUIZ
+
+  quiz        Quiz?
+  progresses  Progress[]
+  submissions Submission[]
+
+  @@index([moduleId])
+  @@unique([moduleId, order])
+}
+
+// ============================================================
+// PROGRESS TRACKING
+// ============================================================
+
+model Progress {
+  id          String         @id @default(cuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  status      ProgressStatus @default(NOT_STARTED)
+  completedAt DateTime?
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([userId, lessonId]) // satu progress record per user per lesson
+  @@index([userId])
+  @@index([lessonId])
+}
+
+// ============================================================
+// QUIZ
+// ============================================================
+
+model Quiz {
+  id        String         @id @default(cuid())
+  lessonId  String         @unique
+  lesson    Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+}
+
+model QuizQuestion {
+  id            String   @id @default(cuid())
+  quizId        String
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question      String
+  options       Json     // contoh: ["A. ...", "B. ...", "C. ...", "D. ..."]
+  correctOption Int      // index jawaban benar
+  order         Int
+
+  @@index([quizId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers   Json     // { questionId: chosenOptionIndex }
+  score     Int
+  passed    Boolean
+  attemptAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([quizId])
+}
+
+// ============================================================
+// SUBMISSION (tugas + review mentor)
+// ============================================================
+
+model Submission {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation("SubmissionOwner", fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson           @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  fileUrl     String? // upload file (Cloudinary/UploadThing)
+  repoUrl     String? // alternatif: link repo Github
+  notes       String? // catatan dari learner saat submit
+  status      SubmissionStatus @default(PENDING)
+  feedback    String? // feedback dari reviewer
+  reviewerId  String?
+  reviewer    User?            @relation("SubmissionReviewer", fields: [reviewerId], references: [id])
+  submittedAt DateTime         @default(now())
+  reviewedAt  DateTime?
+
+  @@index([userId])
+  @@index([lessonId])
+  @@index([status])
+}
+
+// ============================================================
+// ENROLLMENT
+// ============================================================
+
+model Enrollment {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId    String
+  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  status      EnrollmentStatus @default(ACTIVE)
+  enrolledAt  DateTime         @default(now())
+  expiresAt   DateTime? // kalau course premium punya masa akses terbatas
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+// ============================================================
+// CERTIFICATE
+// ============================================================
+
+model Certificate {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  certCode    String   @unique // kode unik untuk verifikasi publik, misal "CERT-XJ29K1"
+  pdfUrl      String?
+  issuedAt    DateTime @default(now())
+
+  @@unique([userId, courseId])
+  @@index([certCode])
+}
+
+// ============================================================
+// PAYMENT (Mayar)
+// ============================================================
+// Flow: user checkout course premium -> create Payment (PENDING) -> redirect ke halaman
+// pembayaran Mayar -> Mayar kirim webhook -> update status jadi SUCCESS/FAILED -> kalau
+// SUCCESS, buat Enrollment
+
+model Payment {
+  id                String         @id @default(cuid())
+  userId            String
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId          String
+  course            Course         @relation(fields: [courseId], references: [id])
+  amount            Int // total dibayar (Rupiah)
+
+  // Data spesifik Mayar
+  mayarTransactionId String?       @unique // "transactionId" dari response create invoice Mayar
+  mayarInvoiceId    String?        @unique // ID invoice/link pembayaran yang dibuat di Mayar
+  merchantRefId     String?        // reference id custom yang kita generate & kirim ke Mayar, dipakai mencocokkan webhook
+  paymentLinkUrl    String?        // URL redirect pembayaran yang dikembalikan Mayar
+  paymentMethod     PaymentMethod?
+  status            PaymentStatus  @default(PENDING)
+  paidAt            DateTime?
+  expiredAt         DateTime?
+  rawWebhook        Json?          // simpan payload webhook mentah dari Mayar untuk audit/debug
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([status])
+  @@index([merchantRefId])
+}
+
+// ============================================================
+// COURSE REVIEW (rating & komentar, opsional tapi umum di landing/detail kelas)
+// ============================================================
+
+model CourseReview {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  rating    Int // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
