@@ -28,33 +28,49 @@ export async function POST(req: Request) {
 
   const merchantRefId = payment.id;
 
-  const mayarRes = await fetch(process.env.MAYAR_BASE_URL + "/invoices/create", {
-    method: "POST",
-    headers: {
-      Authorization: "Bearer " + process.env.MAYAR_API_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name: session.user.name,
-      email: session.user.email,
-      mobile: "081234567890",
-      description: "Pembelian kelas: " + course.title,
-      items: [
-        {
-          quantity: 1,
-          rate: course.price,
-          description: course.title,
-        },
-      ],
-      extraData: {
-        merchantRefId,
+  let mayarRes: Response;
+  let mayarData: { statusCode?: number; data?: { transactionId: string; id: string; link: string } };
+
+  try {
+    mayarRes = await fetch(process.env.MAYAR_BASE_URL + "/invoices/create", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + process.env.MAYAR_API_KEY,
+        "Content-Type": "application/json",
       },
-    }),
-  });
+      body: JSON.stringify({
+        name: session.user.name,
+        email: session.user.email,
+        mobile: "081234567890",
+        description: "Pembelian kelas: " + course.title,
+        items: [
+          {
+            quantity: 1,
+            rate: course.price,
+            description: course.title,
+          },
+        ],
+        extraData: {
+          merchantRefId,
+        },
+      }),
+      signal: AbortSignal.timeout(15000),
+    });
 
-  const mayarData = await mayarRes.json();
+    mayarData = await mayarRes.json();
+  } catch (err) {
+    console.error("Mayar request failed:", err);
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { status: "FAILED" },
+    });
+    return NextResponse.json(
+      { error: "Gagal menghubungi server pembayaran" },
+      { status: 502 }
+    );
+  }
 
-  if (!mayarRes.ok || mayarData.statusCode !== 200) {
+  if (!mayarRes.ok || mayarData.statusCode !== 200 || !mayarData.data) {
     console.error("Mayar API error:", JSON.stringify(mayarData));
     await prisma.payment.update({
       where: { id: payment.id },
