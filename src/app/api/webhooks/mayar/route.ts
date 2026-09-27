@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   const merchantRefId = payload?.data?.extraData?.merchantRefId;
 
   if (!merchantRefId) {
-    return NextResponse.json({ error: "merchantRefId tidak ditemukan" }, { status: 400 });
+    return NextResponse.json({ received: true, note: "no merchantRefId, ignored" });
   }
 
   const payment = await prisma.payment.findUnique({
@@ -15,12 +15,12 @@ export async function POST(req: Request) {
   });
 
   if (!payment) {
-    return NextResponse.json({ error: "Payment tidak ditemukan" }, { status: 404 });
+    return NextResponse.json({ received: true, note: "payment not found, ignored" });
   }
 
-  const eventType = payload?.event;
+  const status = payload?.data?.status;
 
-  if (eventType === "payment.received") {
+  if (status === "SUCCESS" || status === "paid") {
     await prisma.payment.update({
       where: { id: payment.id },
       data: {
@@ -46,5 +46,5 @@ export async function POST(req: Request) {
     });
   }
 
-  return NextResponse.json({ statusCode: 200, messages: "success" });
+  return NextResponse.json({ received: true });
 }

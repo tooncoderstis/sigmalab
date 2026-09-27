@@ -55,6 +55,7 @@ export async function POST(req: Request) {
   const mayarData = await mayarRes.json();
 
   if (!mayarRes.ok || mayarData.statusCode !== 200) {
+    console.error("Mayar API error:", JSON.stringify(mayarData));
     await prisma.payment.update({
       where: { id: payment.id },
       data: { status: "FAILED" },

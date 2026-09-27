@@ -1,13 +1,33 @@
 @import "tailwindcss";
 
+/* ============================================================
+   COLOR SYSTEM - Teal & Cyan Theme
+   ============================================================ */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Primary Colors - Teal */
+  --primary: #14b8a6;
+  --primary-dark: #0d9488;
+  --primary-light: #2dd4bf;
+  
+  /* Secondary Colors - Cyan */
+  --secondary: #06b6d4;
+  --secondary-dark: #0891b2;
+  --secondary-light: #22d3ee;
+  
+  /* Utilities */
+  --text-muted: #6b7280;
+  --text-light: #9ca3af;
+  --border-light: #e5e7eb;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -16,11 +36,247 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --text-muted: #9ca3af;
+    --text-light: #6b7280;
+    --border-light: #374151;
   }
 }
 
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, sans-serif;
+  @apply antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-bold;
+}
+
+h1 {
+  @apply text-3xl md:text-4xl lg:text-5xl leading-tight tracking-tight;
+}
+
+h2 {
+  @apply text-2xl md:text-3xl lg:text-4xl leading-tight;
+}
+
+h3 {
+  @apply text-xl md:text-2xl leading-snug;
+}
+
+h4 {
+  @apply text-lg md:text-xl;
+}
+
+p {
+  @apply text-base md:text-lg leading-relaxed;
+}
+
+a {
+  @apply transition-colors duration-200;
+}
+
+/* ============================================================
+   LAYER COMPONENTS - Buttons, Cards, Badges
+   ============================================================ */
+@layer components {
+  /* BUTTONS */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 ease-out bg-gradient-to-r from-teal-500 to-cyan-500 text-white hover:shadow-lg hover:shadow-teal-500/30 hover:-translate-y-0.5;
+  }
+
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed hover:shadow-none hover:translate-y-0;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 ease-out border-2 border-teal-500 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/30;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 ease-out text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800;
+  }
+
+  .btn-small {
+    @apply px-4 py-2 text-sm;
+  }
+
+  .btn-large {
+    @apply px-8 py-4 text-lg;
+  }
+
+  /* CARDS & CONTAINERS */
+  .card {
+    @apply bg-white dark:bg-gray-900 rounded-lg shadow-md transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply bg-white dark:bg-gray-900 rounded-lg shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+  }
+
+  .card-interactive {
+    @apply bg-white dark:bg-gray-900 rounded-lg shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer;
+  }
+
+  /* SECTIONS & SPACING */
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-24;
+  }
+
+  .section-padding-small {
+    @apply px-4 sm:px-6 lg:px-8 py-8 md:py-12;
+  }
+
+  .container-max {
+    @apply max-w-7xl mx-auto;
+  }
+
+  /* GRADIENT TEXT */
+  .gradient-text {
+    @apply bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent;
+  }
+
+  .gradient-text-reverse {
+    @apply bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent;
+  }
+
+  /* BADGES & LABELS */
+  .badge {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold;
+  }
+
+  .badge-primary {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-400;
+  }
+
+  .badge-success {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400;
+  }
+
+  .badge-danger {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400;
+  }
+
+  .badge-info {
+    @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400;
+  }
+
+  /* FORM ELEMENTS */
+  input, textarea, select {
+    @apply transition-colors duration-200;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    @apply outline-none ring-2 ring-teal-500/50;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  select {
+    @apply block w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white bg-white;
+  }
+
+  /* UTILITY CLASSES */
+  .text-muted {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
+  .text-light {
+    @apply text-gray-500 dark:text-gray-500;
+  }
+
+  .divider {
+    @apply border-t border-gray-200 dark:border-gray-800;
+  }
+
+  .divider-light {
+    @apply border-t border-gray-100 dark:border-gray-900;
+  }
+}
+
+/* ============================================================
+   ANIMATIONS & TRANSITIONS
+   ============================================================ */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+/* ============================================================
+   ACCESSIBILITY
+   ============================================================ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================================================
+   SCROLLBAR STYLING (Optional - Modern browsers)
+   ============================================================ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
 }

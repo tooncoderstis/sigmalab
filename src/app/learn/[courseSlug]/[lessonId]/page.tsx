@@ -4,6 +4,8 @@ import { redirect, notFound } from "next/navigation";
 import MarkCompleteButton from "./mark-complete-button";
 import QuizForm from "./quiz-form";
 import SubmissionForm from "./submission-form";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default async function LearnPage({
   params,
@@ -121,8 +123,37 @@ export default async function LearnPage({
             </div>
           )}
 
-          {lesson.type === "ARTICLE" && (
-            <div className="prose max-w-none mb-6">{lesson.articleBody}</div>
+          {lesson.type === "ARTICLE" && lesson.articleBody && (
+            <div className="mb-6">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: (props) => <h1 className="text-2xl font-bold mt-6 mb-3" {...props} />,
+                  h2: (props) => <h2 className="text-xl font-bold mt-5 mb-2" {...props} />,
+                  h3: (props) => <h3 className="text-lg font-semibold mt-4 mb-2" {...props} />,
+                  p: (props) => <p className="text-gray-700 mb-3 leading-relaxed" {...props} />,
+                  ul: (props) => <ul className="list-disc pl-5 mb-3 space-y-1" {...props} />,
+                  ol: (props) => <ol className="list-decimal pl-5 mb-3 space-y-1" {...props} />,
+                  li: (props) => <li className="text-gray-700" {...props} />,
+                  strong: (props) => <strong className="font-semibold text-gray-900" {...props} />,
+                  a: (props) => <a className="text-blue-600 hover:underline" {...props} />,
+                  code: (props) => (
+                    <code
+                      className="bg-gray-100 text-pink-600 px-1.5 py-0.5 rounded text-sm font-mono"
+                      {...props}
+                    />
+                  ),
+                  pre: (props) => (
+                    <pre
+                      className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm mb-4 [&>code]:bg-transparent [&>code]:text-gray-100 [&>code]:p-0"
+                      {...props}
+                    />
+                  ),
+                }}
+              >
+                {lesson.articleBody}
+              </ReactMarkdown>
+            </div>
           )}
 
           {(lesson.type === "VIDEO" || lesson.type === "ARTICLE") && (
