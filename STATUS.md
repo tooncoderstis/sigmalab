@@ -5,11 +5,11 @@
 > **Jangan simpan kredensial di file ini.**
 
 - **Terakhir diperbarui**: 2026-09-27
-- **Versi produksi aktif**: belum ada rilis bertag (repo sudah live, image belum di-tag)
+- **Versi terbaru**: tag source `v0.1.0` (image produksi belum dibangun/di-tag)
 - **Platform**: Next.js 16.3 (App Router, TS) + Prisma 5 + PostgreSQL + NextAuth v5 · Node 22 · Payment: Mayar (sandbox) · Deploy: EasyPanel VPS (Docker image)
 
 ## TL;DR (konteks 30 detik)
-Portal belajar **berbasis project** (B2C). Fondasi sudah jalan: auth, katalog, enrollment, progres, kuis, dan pembayaran Mayar. Sedang di tahap **merapikan fondasi + menyusun planning** (docs/CI/DoD) sebelum menggarap fitur inti project-based (project brief + rubrik, submission, review/feedback, sertifikat). Redesain UI di-hold (track terpisah). Berikutnya: selesaikan Tahap A–F aasaprojectkit, lalu masuk Fase 2 PRD.
+Portal belajar **berbasis project** (B2C). Fondasi sudah jalan: auth, katalog, enrollment, progres, kuis, dan pembayaran Mayar. Tahap penguatan fondasi (docs/CI/DoD/deploy) **selesai dan ter-push** (`v0.1.0`). Berikutnya: masuk **Fase 2 PRD** — fitur inti project-based (project brief + rubrik, submission, review/feedback). Redesain UI di-hold (track terpisah).
 
 ## Checklist Tahap
 | Tahap | Judul | Status |
@@ -20,15 +20,15 @@ Portal belajar **berbasis project** (B2C). Fondasi sudah jalan: auth, katalog, e
 | C | Repo hygiene & health files | ✅ |
 | D | CI & testing (Vitest + Playwright) | ✅ |
 | E | Deploy EasyPanel (Docker image + runbook) | ✅ |
-| F | Commit & rilis 0.1.0 | ⬜ |
+| F | Commit & rilis 0.1.0 | ✅ |
 | G | Fase 2 PRD: project brief + submission + review | ⬜ |
 | H | Fase 3 PRD: sertifikat + review kursus + showcase | ⬜ |
 
 ## Kondisi saat ini
-- `npm run build`, `npm run lint`, `npm run typecheck`, `npm test` (Vitest), dan `npm run test:e2e` (Playwright) **lulus** di mesin lokal.
-- Ada **perubahan belum di-commit**: dokumentasi, hardening payment, health endpoint, dan setup testing/CI.
-- **Sudah ada**: test suite (6 unit test), CI GitHub Actions, health endpoint `/api/health`.
-- Deploy produksi: EasyPanel; Mayar masih **sandbox**.
+- Semua hijau di lokal: `npm run build`, `npm run lint`, `npm run typecheck`, `npm test` (6 unit), `npm run test:e2e`.
+- Semua perubahan sudah **di-commit & push** ke `origin/main`; tag source `v0.1.0`.
+- **Sudah ada**: dokumentasi (PRD/ADR/runbook), test suite, CI GitHub Actions, health endpoint `/api/health`, image Docker siap.
+- Deploy produksi: EasyPanel; Mayar masih **sandbox** (image produksi belum dibangun).
 
 ## Yang belum selesai / menunggu
 | Item | Catatan |
@@ -56,7 +56,6 @@ npm run test:e2e       # Playwright (butuh build dulu)
 
 ## Rilis
 ```sh
-# setelah Tahap E:
 powershell -File deploy/easypanel-docker/build-push.ps1 -Image <registry>/<image> -Tag 0.1.0 -Push
 ```
 Deploy di EasyPanel (Source: Docker Image). Detail: [`docs/runbooks/`](docs/runbooks/).
