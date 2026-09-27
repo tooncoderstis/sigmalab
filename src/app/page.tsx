@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import Hero from "@/components/hero";
 import FeatureCard from "@/components/feature-card";
@@ -185,9 +186,9 @@ export default async function Home() {
               </div>
 
               <div className="text-center">
-                <a href="/courses" className="btn-secondary btn-large">
+                <Link href="/courses" className="btn-secondary btn-large">
                   Lihat Semua Kursus
-                </a>
+                </Link>
               </div>
             </>
           ) : (
@@ -224,7 +225,7 @@ export default async function Home() {
               >
                 {/* Quote */}
                 <p className="text-gray-700 dark:text-gray-300 italic leading-relaxed">
-                  "{testimonial.quote}"
+                  &ldquo;{testimonial.quote}&rdquo;
                 </p>
 
                 {/* Author Info */}
@@ -258,18 +259,18 @@ export default async function Home() {
             melalui pembelajaran berkualitas dan mentoring dari para expert
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
+            <Link
               href="/courses"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg font-semibold transition-all duration-200 ease-out bg-white text-teal-600 hover:shadow-lg hover:-translate-y-0.5"
             >
               Jelajahi Kursus Gratis
-            </a>
-            <a
+            </Link>
+            <Link
               href="/register"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-lg font-semibold transition-all duration-200 ease-out border-2 border-white text-white hover:bg-white/10"
             >
               Daftar Sekarang
-            </a>
+            </Link>
           </div>
         </div>
       </section>

@@ -2,7 +2,7 @@
 
 import CourseCard from "@/components/course-card";
 import Hero from "@/components/hero";
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { CourseLevel } from "@prisma/client";
 
 interface Course {
@@ -26,7 +26,6 @@ interface CoursesPageClientProps {
 }
 
 export default function CoursesPageClient({ courses: initialCourses }: CoursesPageClientProps) {
-  const [courses, setCourses] = useState(initialCourses);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevel, setSelectedLevel] = useState<CourseLevel | "ALL">("ALL");
   const [selectedPrice, setSelectedPrice] = useState<"ALL" | "FREE" | "PREMIUM">(
@@ -34,7 +33,7 @@ export default function CoursesPageClient({ courses: initialCourses }: CoursesPa
   );
 
   // Filter courses
-  useEffect(() => {
+  const courses = useMemo(() => {
     let filtered = initialCourses;
 
     // Search by title or description
@@ -60,7 +59,7 @@ export default function CoursesPageClient({ courses: initialCourses }: CoursesPa
       }
     }
 
-    setCourses(filtered);
+    return filtered;
   }, [searchQuery, selectedLevel, selectedPrice, initialCourses]);
 
   return (

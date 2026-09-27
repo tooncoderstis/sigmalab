@@ -74,12 +74,12 @@ export default function Navbar() {
             >
               Courses
             </Link>
-            <a
+            <Link
               href="/courses"
               className="text-gray-700 dark:text-gray-300 hover:text-teal-600 dark:hover:text-teal-400 transition-colors font-medium"
             >
               Learning Paths
-            </a>
+            </Link>
           </div>
 
           {/* Right Section - Auth */}
@@ -184,13 +184,13 @@ export default function Navbar() {
             >
               Courses
             </Link>
-            <a
+            <Link
               href="/courses"
               className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-lg transition-colors"
               onClick={() => setIsMenuOpen(false)}
             >
               Learning Paths
-            </a>
+            </Link>
 
             {!session ? (
               <div className="flex flex-col gap-2 pt-2 border-t border-gray-200 dark:border-gray-800">
