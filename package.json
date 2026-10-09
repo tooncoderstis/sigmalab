@@ -12,6 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "hub:report": "node scripts/hub-report.mjs",
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
