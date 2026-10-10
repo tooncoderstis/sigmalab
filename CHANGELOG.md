@@ -7,6 +7,18 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com) dan proyek ini m
 Status terkini: [`STATUS.md`](STATUS.md).
 
 ## [Unreleased]
+### Added
+- Fase 1 (akademik inti): tahun ajaran & term, program (sekolah/bimbel/kuliah), mapel, kelas (rombel), keanggotaan siswa, dan penugasan guru (ADR-0008).
+- Presensi siswa per sesi (HADIR/TERLAMBAT/ALPA/SAKIT/IZIN) dan presensi harian guru (check-in/check-out).
+- Peran multi-peran via `UserRole` (`SUPER_ADMIN`, `ADMIN`, `TEACHER`, `STUDENT`, `GUARDIAN`, `STAFF`, + `LEARNER`/`REVIEWER`) dan RBAC berlapis: `proxy.ts` (pengganti `middleware` Next 16) + `requireApiRole()` di route handler (ADR-0007).
+- API akademik: `years`, `terms`, `programs`, `subjects`, `classes`, enrollments, assignments, users, sessions, teacher-attendance, user-roles (validasi zod + guard peran).
+- UI: Manajemen Akademik (admin), Ruang Guru (kelas + presensi + check-in), Ruang Siswa, Ruang Wali, Super Admin (manajemen peran); tautan navigasi berbasis peran.
+- Skrip `npm run grant:role <email> <ROLE> [--primary]` untuk bootstrap peran.
+- Dependensi `zod` untuk validasi input server-side.
+- Uji: unit (`roles`, `validation`) + route handler akademik; smoke e2e penjagaan rute.
+### Changed
+- Sesi NextAuth memuat `role` (utama) dan `roles` (daftar multi-peran); `User`/`JWT` di-augmentasi.
+- Migrasi DB non-destruktif + backfill `UserRole` dari `User.role` untuk user lama.
 
 ## [0.1.0] - 2026-09-27
 ### Added

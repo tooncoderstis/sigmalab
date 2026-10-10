@@ -1,6 +1,7 @@
 import { auth } from "../../../../auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { userHasRole } from "@/lib/rbac";
 import ReviewButtons from "./review-buttons";
 
 export default async function AdminSubmissionsPage() {
@@ -10,7 +11,7 @@ export default async function AdminSubmissionsPage() {
     redirect("/login");
   }
 
-  if (session.user.role !== "ADMIN" && session.user.role !== "REVIEWER") {
+  if (!userHasRole(session.user, "ADMIN", "REVIEWER", "SUPER_ADMIN")) {
     redirect("/dashboard");
   }
 

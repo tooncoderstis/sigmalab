@@ -22,6 +22,33 @@ enum Role {
   LEARNER
   REVIEWER
   ADMIN
+  SUPER_ADMIN
+  TEACHER
+  STUDENT
+  GUARDIAN
+  STAFF
+}
+
+// Jenis instansi/program yang dilayani (satu instansi per deploy bisa punya beberapa program)
+enum ProgramType {
+  SEKOLAH
+  BIMBEL
+  KULIAH
+}
+
+// Peran guru di dalam sebuah kelas
+enum TeachingRole {
+  MAIN
+  ASSISTANT
+}
+
+// Status kehadiran (presensi siswa per sesi & presensi harian guru)
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  SICK
+  EXCUSED
 }
 
 enum CourseLevel {
@@ -80,25 +107,40 @@ enum PaymentMethod {
 // ============================================================
 
 model User {
-  id            String   @id @default(cuid())
-  name          String
-  email         String   @unique
-  password      String? // nullable kalau pakai OAuth
-  avatarUrl     String?
-  role          Role     @default(LEARNER)
-  isPremium     Boolean  @default(false) // shortcut flag, tapi tetap cek Enrollment/Subscription utk akses akurat
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String? // nullable kalau pakai OAuth
+  avatarUrl String?
+  role      Role     @default(LEARNER)
+  isPremium Boolean  @default(false) // shortcut flag, tapi tetap cek Enrollment/Subscription utk akses akurat
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
   enrollments   Enrollment[]
   progresses    Progress[]
   quizAttempts  QuizAttempt[]
-  submissions   Submission[]       @relation("SubmissionOwner")
-  reviewedSubs  Submission[]       @relation("SubmissionReviewer")
+  submissions   Submission[]   @relation("SubmissionOwner")
+  reviewedSubs  Submission[]   @relation("SubmissionReviewer")
   certificates  Certificate[]
   payments      Payment[]
   courseReviews CourseReview[]
+
+  // Akademik (Fase 1): multi-peran + profil + relasi kelas/presensi
+  roles              UserRole[]
+  studentProfile     StudentProfile?
+  teacherProfile     TeacherProfile?
+  staffProfile       StaffProfile?
+  guardianProfile    GuardianProfile?
+  homeroomClasses    AcademicClass[]      @relation("HomeroomTeacher")
+  classEnrollments   ClassEnrollment[]    @relation("ClassEnrollmentStudent")
+  teachings          TeachingAssignment[] @relation("TeachingAssignmentTeacher")
+  taughtSessions     AttendanceSession[]  @relation("SessionTeacher")
+  createdSessions    AttendanceSession[]  @relation("SessionCreator")
+  attendanceRecords  AttendanceRecord[]   @relation("AttendanceStudent")
+  markedAttendance   AttendanceRecord[]   @relation("AttendanceMarker")
+  teacherAttendances TeacherAttendance[]  @relation("TeacherAttendance")
 
   @@index([email])
 }
@@ -115,62 +157,63 @@ model Category {
 }
 
 model Course {
-  id            String      @id @default(cuid())
-  title         String
-  slug          String      @unique
-  description   String
-  thumbnailUrl  String?
-  level         CourseLevel @default(PEMULA)
-  isPremium     Boolean     @default(false)
-  price         Int         @default(0) // dalam Rupiah, 0 kalau gratis
-  isPublished   Boolean     @default(false)
-  categoryId    String
-  category      Category    @relation(fields: [categoryId], references: [id])
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id           String      @id @default(cuid())
+  title        String
+  slug         String      @unique
+  description  String
+  thumbnailUrl String?
+  level        CourseLevel @default(PEMULA)
+  isPremium    Boolean     @default(false)
+  price        Int         @default(0) // dalam Rupiah, 0 kalau gratis
+  isPublished  Boolean     @default(false)
+  categoryId   String
+  category     Category    @relation(fields: [categoryId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
-  modules       Module[]
-  enrollments   Enrollment[]
-  certificates  Certificate[]
-  payments      Payment[]
-  reviews       CourseReview[]
+  modules         Module[]
+  enrollments     Enrollment[]
+  certificates    Certificate[]
+  payments        Payment[]
+  reviews         CourseReview[]
+  academicClasses AcademicClass[]
 
   @@index([categoryId])
   @@index([slug])
 }
 
 model Module {
-  id        String   @id @default(cuid())
-  courseId  String
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  title     String
-  order     Int // urutan modul dalam course
+  id       String @id @default(cuid())
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title    String
+  order    Int // urutan modul dalam course
 
-  lessons   Lesson[]
+  lessons Lesson[]
 
-  @@index([courseId])
   @@unique([courseId, order])
+  @@index([courseId])
 }
 
 model Lesson {
-  id        String     @id @default(cuid())
-  moduleId  String
-  module    Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  title     String
-  order     Int // urutan lesson dalam module
-  type      LessonType
+  id       String     @id @default(cuid())
+  moduleId String
+  module   Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  title    String
+  order    Int // urutan lesson dalam module
+  type     LessonType
 
   // Konten sesuai type
-  videoUrl      String? // untuk type VIDEO (embed Youtube/Vimeo/Mux)
-  articleBody   String? // untuk type ARTICLE (markdown/html)
-  passingScore  Int?    @default(80) // untuk type QUIZ
+  videoUrl     String? // untuk type VIDEO (embed Youtube/Vimeo/Mux)
+  articleBody  String? // untuk type ARTICLE (markdown/html)
+  passingScore Int?    @default(80) // untuk type QUIZ
 
   quiz        Quiz?
   progresses  Progress[]
   submissions Submission[]
 
-  @@index([moduleId])
   @@unique([moduleId, order])
+  @@index([moduleId])
 }
 
 // ============================================================
@@ -205,12 +248,12 @@ model Quiz {
 }
 
 model QuizQuestion {
-  id            String   @id @default(cuid())
+  id            String @id @default(cuid())
   quizId        String
-  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quiz          Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
   question      String
-  options       Json     // contoh: ["A. ...", "B. ...", "C. ...", "D. ..."]
-  correctOption Int      // index jawaban benar
+  options       Json // contoh: ["A. ...", "B. ...", "C. ...", "D. ..."]
+  correctOption Int // index jawaban benar
   order         Int
 
   @@index([quizId])
@@ -222,7 +265,7 @@ model QuizAttempt {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   quizId    String
   quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  answers   Json     // { questionId: chosenOptionIndex }
+  answers   Json // { questionId: chosenOptionIndex }
   score     Int
   passed    Boolean
   attemptAt DateTime @default(now())
@@ -261,14 +304,14 @@ model Submission {
 // ============================================================
 
 model Enrollment {
-  id          String           @id @default(cuid())
-  userId      String
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId    String
-  course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  status      EnrollmentStatus @default(ACTIVE)
-  enrolledAt  DateTime         @default(now())
-  expiresAt   DateTime? // kalau course premium punya masa akses terbatas
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId   String
+  course     Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  status     EnrollmentStatus @default(ACTIVE)
+  enrolledAt DateTime         @default(now())
+  expiresAt  DateTime? // kalau course premium punya masa akses terbatas
 
   @@unique([userId, courseId])
   @@index([userId])
@@ -280,14 +323,14 @@ model Enrollment {
 // ============================================================
 
 model Certificate {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId    String
-  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  certCode    String   @unique // kode unik untuk verifikasi publik, misal "CERT-XJ29K1"
-  pdfUrl      String?
-  issuedAt    DateTime @default(now())
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  certCode String   @unique // kode unik untuk verifikasi publik, misal "CERT-XJ29K1"
+  pdfUrl   String?
+  issuedAt DateTime @default(now())
 
   @@unique([userId, courseId])
   @@index([certCode])
@@ -301,26 +344,26 @@ model Certificate {
 // SUCCESS, buat Enrollment
 
 model Payment {
-  id                String         @id @default(cuid())
-  userId            String
-  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId          String
-  course            Course         @relation(fields: [courseId], references: [id])
-  amount            Int // total dibayar (Rupiah)
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id])
+  amount   Int // total dibayar (Rupiah)
 
   // Data spesifik Mayar
-  mayarTransactionId String?       @unique // "transactionId" dari response create invoice Mayar
-  mayarInvoiceId    String?        @unique // ID invoice/link pembayaran yang dibuat di Mayar
-  merchantRefId     String?        // reference id custom yang kita generate & kirim ke Mayar, dipakai mencocokkan webhook
-  paymentLinkUrl    String?        // URL redirect pembayaran yang dikembalikan Mayar
-  paymentMethod     PaymentMethod?
-  status            PaymentStatus  @default(PENDING)
-  paidAt            DateTime?
-  expiredAt         DateTime?
-  rawWebhook        Json?          // simpan payload webhook mentah dari Mayar untuk audit/debug
+  mayarTransactionId String?        @unique // "transactionId" dari response create invoice Mayar
+  mayarInvoiceId     String?        @unique // ID invoice/link pembayaran yang dibuat di Mayar
+  merchantRefId      String? // reference id custom yang kita generate & kirim ke Mayar, dipakai mencocokkan webhook
+  paymentLinkUrl     String? // URL redirect pembayaran yang dikembalikan Mayar
+  paymentMethod      PaymentMethod?
+  status             PaymentStatus  @default(PENDING)
+  paidAt             DateTime?
+  expiredAt          DateTime?
+  rawWebhook         Json? // simpan payload webhook mentah dari Mayar untuk audit/debug
 
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([courseId])
@@ -344,4 +387,239 @@ model CourseReview {
 
   @@unique([userId, courseId])
   @@index([courseId])
+}
+
+// ============================================================
+// AKADEMIK (FASE 1): MULTI-PERAN, PROFIL, STRUKTUR, PRESENSI
+// ============================================================
+
+// Banyak peran per user. User.role tetap sebagai peran utama (kompatibilitas).
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role
+  createdAt DateTime @default(now())
+
+  @@unique([userId, role])
+  @@index([role])
+}
+
+model StudentProfile {
+  id         String           @id @default(cuid())
+  userId     String           @unique
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nis        String?          @unique
+  nisn       String?          @unique
+  programId  String?
+  program    Program?         @relation(fields: [programId], references: [id])
+  guardianId String?
+  guardian   GuardianProfile? @relation(fields: [guardianId], references: [id])
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@index([programId])
+  @@index([guardianId])
+}
+
+model TeacherProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nip       String?  @unique
+  specialty String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StaffProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  position   String?
+  department String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model GuardianProfile {
+  id         String           @id @default(cuid())
+  userId     String           @unique
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone      String?
+  occupation String?
+  students   StudentProfile[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+model AcademicYear {
+  id        String    @id @default(cuid())
+  name      String    @unique // contoh "2025/2026"
+  startDate DateTime?
+  endDate   DateTime?
+  isActive  Boolean   @default(false)
+  terms     Term[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Term {
+  id             String          @id @default(cuid())
+  academicYearId String
+  academicYear   AcademicYear    @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  name           String // contoh "Ganjil" / "Genap"
+  startDate      DateTime?
+  endDate        DateTime?
+  isActive       Boolean         @default(false)
+  classes        AcademicClass[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([academicYearId, name])
+  @@index([academicYearId])
+}
+
+model Program {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  slug        String           @unique
+  type        ProgramType      @default(SEKOLAH)
+  gradeLevel  String?
+  description String?
+  classes     AcademicClass[]
+  subjects    Subject[]
+  students    StudentProfile[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Subject {
+  id                 String               @id @default(cuid())
+  name               String
+  code               String?
+  programId          String?
+  program            Program?             @relation(fields: [programId], references: [id])
+  classes            AcademicClass[]
+  assignments        TeachingAssignment[]
+  attendanceSessions AttendanceSession[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  @@unique([programId, name])
+  @@index([programId])
+}
+
+model AcademicClass {
+  id                String               @id @default(cuid())
+  name              String // contoh "X IPA 1"
+  programId         String
+  program           Program              @relation(fields: [programId], references: [id])
+  termId            String
+  term              Term                 @relation(fields: [termId], references: [id])
+  subjectId         String?
+  subject           Subject?             @relation(fields: [subjectId], references: [id])
+  courseId          String? // materi belajar opsional (Course lama)
+  course            Course?              @relation(fields: [courseId], references: [id])
+  homeroomTeacherId String?
+  homeroomTeacher   User?                @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  capacity          Int?
+  isActive          Boolean              @default(true)
+  enrollments       ClassEnrollment[]
+  assignments       TeachingAssignment[]
+  sessions          AttendanceSession[]
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@unique([termId, programId, name])
+  @@index([programId])
+  @@index([termId])
+  @@index([subjectId])
+}
+
+model ClassEnrollment {
+  id         String           @id @default(cuid())
+  classId    String
+  class      AcademicClass    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  studentId  String
+  student    User             @relation("ClassEnrollmentStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  status     EnrollmentStatus @default(ACTIVE)
+  enrolledAt DateTime         @default(now())
+
+  @@unique([classId, studentId])
+  @@index([classId])
+  @@index([studentId])
+}
+
+model TeachingAssignment {
+  id        String        @id @default(cuid())
+  classId   String
+  class     AcademicClass @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacherId String
+  teacher   User          @relation("TeachingAssignmentTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  subjectId String?
+  subject   Subject?      @relation(fields: [subjectId], references: [id])
+  role      TeachingRole  @default(MAIN)
+  createdAt DateTime      @default(now())
+
+  @@unique([classId, teacherId, subjectId])
+  @@index([classId])
+  @@index([teacherId])
+}
+
+model AttendanceSession {
+  id          String             @id @default(cuid())
+  classId     String
+  class       AcademicClass      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacherId   String
+  teacher     User               @relation("SessionTeacher", fields: [teacherId], references: [id])
+  subjectId   String?
+  subject     Subject?           @relation(fields: [subjectId], references: [id])
+  date        DateTime
+  startTime   String?
+  endTime     String?
+  topic       String?
+  createdById String?
+  createdBy   User?              @relation("SessionCreator", fields: [createdById], references: [id])
+  records     AttendanceRecord[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([classId])
+  @@index([teacherId])
+  @@index([date])
+}
+
+model AttendanceRecord {
+  id         String            @id @default(cuid())
+  sessionId  String
+  session    AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  studentId  String
+  student    User              @relation("AttendanceStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  status     AttendanceStatus
+  note       String?
+  markedAt   DateTime          @default(now())
+  markedById String?
+  markedBy   User?             @relation("AttendanceMarker", fields: [markedById], references: [id])
+
+  @@unique([sessionId, studentId])
+  @@index([sessionId])
+  @@index([studentId])
+}
+
+model TeacherAttendance {
+  id         String           @id @default(cuid())
+  teacherId  String
+  teacher    User             @relation("TeacherAttendance", fields: [teacherId], references: [id], onDelete: Cascade)
+  date       DateTime
+  checkInAt  DateTime?
+  checkOutAt DateTime?
+  status     AttendanceStatus @default(PRESENT)
+  note       String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@unique([teacherId, date])
+  @@index([teacherId])
+  @@index([date])
 }

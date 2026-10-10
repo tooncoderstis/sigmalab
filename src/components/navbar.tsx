@@ -12,6 +12,27 @@ export default function Navbar() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
 
+  const ownedRoles = new Set<string>([
+    ...(session?.user?.role ? [session.user.role] : []),
+    ...(session?.user?.roles ?? []),
+  ]);
+  const isManager =
+    ownedRoles.has("ADMIN") || ownedRoles.has("SUPER_ADMIN");
+  const isTeacher = ownedRoles.has("TEACHER") || isManager;
+  const isStudent = ownedRoles.has("STUDENT") || isManager;
+  const isGuardian = ownedRoles.has("GUARDIAN") || isManager;
+  const isSuperAdmin = ownedRoles.has("SUPER_ADMIN");
+
+  const academicLinks = session
+    ? [
+        isSuperAdmin ? { href: "/super-admin", label: "Super Admin" } : null,
+        isManager ? { href: "/admin/akademik", label: "Manajemen Akademik" } : null,
+        isTeacher ? { href: "/guru", label: "Ruang Guru" } : null,
+        isStudent ? { href: "/siswa", label: "Ruang Siswa" } : null,
+        isGuardian ? { href: "/wali", label: "Ruang Wali" } : null,
+      ].filter((link): link is { href: string; label: string } => link !== null)
+    : [];
+
   const handleLogout = async () => {
     await signOut({ redirect: true, callbackUrl: "/" });
   };
@@ -128,6 +149,16 @@ export default function Navbar() {
                     >
                       Dashboard
                     </Link>
+                    {academicLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        onClick={() => setIsProfileOpen(false)}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
                     <button
                       onClick={() => {
                         setIsProfileOpen(false);
@@ -218,6 +249,16 @@ export default function Navbar() {
                 >
                   Dashboard
                 </Link>
+                {academicLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-lg transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
                 <button
                   onClick={() => {
                     setIsMenuOpen(false);

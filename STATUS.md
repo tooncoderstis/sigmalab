@@ -4,12 +4,12 @@
 > Riwayat rilis: [`CHANGELOG.md`](CHANGELOG.md) · Keputusan: [`docs/adr/`](docs/adr/) · Kebutuhan: [`PRD.md`](PRD.md).
 > **Jangan simpan kredensial di file ini.**
 
-- **Terakhir diperbarui**: 2026-09-27
-- **Versi terbaru**: tag source `v0.1.0` (image produksi belum dibangun/di-tag)
+- **Terakhir diperbarui**: 2026-10-10
+- **Versi terbaru**: tag source `v0.1.0`; pekerjaan Fase 1 **belum di-tag & belum di-deploy**
 - **Platform**: Next.js 16.3 (App Router, TS) + Prisma 5 + PostgreSQL + NextAuth v5 · Node 22 · Payment: Mayar (sandbox) · Deploy: EasyPanel VPS (Docker image)
 
 ## TL;DR (konteks 30 detik)
-Portal belajar **berbasis project** (B2C). Fondasi sudah jalan: auth, katalog, enrollment, progres, kuis, dan pembayaran Mayar. Tahap penguatan fondasi (docs/CI/DoD/deploy) **selesai dan ter-push** (`v0.1.0`). Berikutnya: masuk **Fase 2 PRD** — fitur inti project-based (project brief + rubrik, submission, review/feedback). Redesain UI di-hold (track terpisah).
+Perluasan arah: SigmaLab dari portal belajar **berbasis project** (B2C) menjadi **portal belajar universal + manajemen sekolah/instansi** (LMS + SIS ringan). Fondasi lama (auth, katalog, enrollment, progres, kuis, pembayaran Mayar) **dipertahankan**; `Course` menjadi materi opsional bagi kelas akademik. Keputusan: **satu instansi per deploy**, **multi-peran** (`UserRole`), `SUPER_ADMIN` (vendor) + `ADMIN` (instansi). **Fase 1 = akademik inti + presensi** (kelas, siswa, guru, program, tahun ajaran/term, presensi siswa & guru). Nilai/rapor mulai Fase 2. Redesain UI di-hold (track terpisah).
 
 ## Checklist Tahap
 | Tahap | Judul | Status |
@@ -21,25 +21,30 @@ Portal belajar **berbasis project** (B2C). Fondasi sudah jalan: auth, katalog, e
 | D | CI & testing (Vitest + Playwright) | ✅ |
 | E | Deploy EasyPanel (Docker image + runbook) | ✅ |
 | F | Commit & rilis 0.1.0 | ✅ |
-| G | Fase 2 PRD: project brief + submission + review | ⬜ |
-| H | Fase 3 PRD: sertifikat + review kursus + showcase | ⬜ |
+| G | Fase 1: akademik inti + presensi (kelas, siswa, guru, program, term, presensi) | ✅ |
+| H | Fase 2: penilaian & rapor, kegiatan sekolah, pengumuman | ⬜ |
+| I | Fase 3: kurikulum/RPP + ketersediaan & distribusi textbook | ⬜ |
+| J | Fase 4: perpustakaan + inventaris ATK/sarpras | ⬜ |
+| K | Fase 5: SPP, notifikasi, audit, analitik | ⬜ |
 
 ## Kondisi saat ini
-- Semua hijau di lokal: `npm run build`, `npm run lint`, `npm run typecheck`, `npm test` (6 unit), `npm run test:e2e`.
-- Semua perubahan sudah **di-commit & push** ke `origin/main`; tag source `v0.1.0`.
-- **Sudah ada**: dokumentasi (PRD/ADR/runbook), test suite, CI GitHub Actions, health endpoint `/api/health`, image Docker siap.
-- Deploy produksi: EasyPanel; Mayar masih **sandbox** (image produksi belum dibangun).
+- Semua hijau di lokal: `npm run build`, `npm run lint` (1 warning lama), `npm run typecheck`, `npm test` (30 unit/route), `npm run test:e2e` (3 smoke).
+- **Fase 1 (akademik inti + presensi) selesai**: multi-peran & RBAC, struktur akademik, presensi siswa (per sesi) & guru, plus UI admin/guru/siswa/wali/super-admin.
+- Migrasi DB non-destruktif (`phase1_academic_core`, `session_subject_relation`) + backfill `UserRole`.
+- **⚠️ DB produksi bersama sudah termigrasi Fase 1**: `DATABASE_URL` lokal menunjuk DB yang **sama** dengan service produksi (`.../sigmalabdb`), jadi tabel/enum Fase 1 sudah ada di DB tsb walau kode belum di-deploy.
+- **Sudah di-commit & push** ke `origin/main` (Fase 1, commit terbaru); tag rilis & deploy menyusul.
+- Deploy produksi: EasyPanel service `sigmalab` (image `aasatech/sigmalab:latest`) masih menjalankan build **pra-Fase 1**; env produksi stale (`MAYAR_BASE_URL=api.mayar.club`); image Fase 1 **belum di-build/push**. Mayar masih **sandbox**.
 
 ## Yang belum selesai / menunggu
 | Item | Catatan |
 |---|---|
-| Verifikasi signature webhook Mayar | Keamanan pembayaran — prioritas Fase 1 |
-| Validasi input (zod) di route mutasi | Wajib untuk DoD test |
-| RBAC/middleware guard | Cegah akses lintas-role |
+| Verifikasi signature webhook Mayar | Keamanan pembayaran — carry-over |
 | API key Mayar Read & Write | Key saat ini scope `{read:true}` |
-| Fitur project-based (brief/rubrik/submission/review) | Inti produk, Fase 2 PRD |
+| Fitur project-based (brief/rubrik/submission/review) | Inti produk, belum diprioritaskan |
 | Sertifikat & verifikasi publik | Model ada, flow belum |
-| Admin CMS | Fase 4 PRD |
+| Nilai, rapor, tugas, kegiatan sekolah, pengumuman | Fase 2 |
+| Kurikulum/RPP, textbook, perpustakaan, ATK/sarpras | Fase 3–4 |
+| SPP/billing, notifikasi, audit, analitik | Fase 5 |
 | Redesain UI | Di-hold, track terpisah (strategi milik pemilik produk) |
 
 ## Cara menjalankan & menguji
@@ -52,6 +57,7 @@ npm run lint           # ESLint
 npm run typecheck      # tsc --noEmit
 npm test               # Vitest (unit + route handler)
 npm run test:e2e       # Playwright (butuh build dulu)
+npm run grant:role <email> SUPER_ADMIN --primary  # bootstrap peran (multi-peran)
 ```
 
 ## Rilis

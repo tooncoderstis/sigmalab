@@ -13,6 +13,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "hub:report": "node scripts/hub-report.mjs",
+    "grant:role": "node scripts/grant-role.mjs",
     "postinstall": "prisma skills sync || exit 0"
   },
   "dependencies": {
@@ -23,7 +24,8 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-markdown": "^10.1.0",
-    "remark-gfm": "^4.0.1"
+    "remark-gfm": "^4.0.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",

@@ -1,16 +1,16 @@
 # PRD: SigmaLab
 
-**Status**: dikembangkan — fondasi (auth, katalog, enrollment, progres, kuis, pembayaran) sudah berjalan; fitur inti *project-based learning* sedang disusun.
-**Versi dokumen**: 0.1
+**Status**: dikembangkan — fondasi (auth, katalog, enrollment, progres, kuis, pembayaran) sudah berjalan; diperluas menjadi **portal belajar universal + manajemen sekolah/instansi** (LMS + SIS ringan). Fase 1 (akademik inti + presensi) sedang dibangun.
+**Versi dokumen**: 0.2
 **Terkait**: `STATUS.md`, `CHANGELOG.md`, `docs/adr/`
 
 > Dokumen ini menjawab **apa & kenapa**. Progres ada di `STATUS.md`, riwayat rilis di `CHANGELOG.md`, keputusan teknis di `docs/adr/`.
 
 ## 1. Ringkasan Produk
 
-SigmaLab adalah portal belajar **berbasis project** untuk publik/komunitas (B2C). Berbeda dari platform kursus video pasif, peserta tidak hanya menonton materi tetapi **menyelesaikan project nyata** yang direview oleh mentor/reviewer, lalu mendapat feedback dan sertifikat kelulusan.
+SigmaLab adalah portal belajar **universal** untuk publik/komunitas (B2C) **sekaligus** manajemen sekolah/instansi (LMS + SIS ringan): bimbel sekolah, bimbel SNBT, mata kuliah, dan lembaga lain. Di sisi belajar, peserta tidak hanya menonton materi tetapi **menyelesaikan project nyata** yang direview mentor. Di sisi manajemen, instansi mengelola kelas, siswa, guru, program, tahun ajaran, dan **presensi** (siswa & guru).
 
-Masalah yang diselesaikan: banyak kursus online berhenti di "menonton video" tanpa bukti keterampilan. SigmaLab memaksa output nyata (repo/file project + rubrik penilaian), sehingga peserta punya portofolio dan platform punya bukti hasil belajar. Model bisnis: kursus gratis sebagai akuisisi, kursus premium via pembayaran Mayar.
+Masalah yang diselesaikan: banyak kursus online berhenti di "menonton video" tanpa bukti keterampilan, dan banyak lembaga masih mengelola operasional akademik secara manual. SigmaLab menyatukan keduanya: output belajar nyata (repo/file project + rubrik) dan tata kelola akademik (kelas, keanggotaan, penugasan guru, presensi). Model bisnis: kursus gratis sebagai akuisisi, kursus premium via pembayaran Mayar; deployment satu instansi per deploy.
 
 ## 2. Prinsip Desain Utama
 
@@ -23,22 +23,31 @@ Masalah yang diselesaikan: banyak kursus online berhenti di "menonton video" tan
 
 ## 3. Peran Pengguna (Roles)
 
+Peran bersifat **multi-peran** (`UserRole`): satu user bisa memegang lebih dari satu peran. `User.role` menyimpan peran utama (lihat ADR-0007).
+
 | Role | Deskripsi | Akses |
 |---|---|---|
-| GuEST/anonim | Belum login | Lihat landing, katalog, detail kursus publik |
-| LEARNER | Peserta terdaftar | Ikuti kelas, submit tugas, kuis, lihat progres & sertifikat |
-| REVIEWER | Mentor/penilai | Review & beri feedback submission |
-| ADMIN | Pengelola | Kelola course/module/lesson/quiz, user, enrollment, pembayaran |
+| GUEST/anonim | Belum login | Landing, katalog, detail kursus publik |
+| LEARNER | Peserta kursus marketplace | Ikuti kelas, submit tugas, kuis, progres & sertifikat |
+| REVIEWER | Mentor/penilai submission | Review & feedback submission |
+| STUDENT | Siswa/mahasiswa instansi | Kelas akademik, presensi pribadi, materi |
+| GUARDIAN | Wali murid | Pantau (read-only) presensi anak |
+| TEACHER | Guru/tutor | Kelola kelas diampu, isi presensi, check-in |
+| STAFF | Staf non-akademik | Modul perpustakaan/ATK (fase lanjutan) |
+| ADMIN | Admin instansi | Kelola data akademik, pengguna, kelas, kursus, pembayaran |
+| SUPER_ADMIN | Vendor/pemilik deploy | Akses penuh lintas modul & manajemen peran |
 
 ## 4. Fase / Modul Pengembangan
 
 ```
-FASE 1 → Fondasi & hardening (selesai sebagian)   → auth, katalog, enrollment, progres, kuis, pembayaran
-FASE 2 → Inti project-based learning              → project brief + rubrik, submission, review/feedback, resubmit
-FASE 3 → Kelulusan & kredibilitas                  → sertifikat + verifikasi publik, review/rating kursus, showcase project
-FASE 4 → Operasional & skala                       → admin CMS, notifikasi email, dashboard, observability, backup
-FASE 5 → Monetisasi lanjutan & pertumbuhan         → produksi pembayaran, paket/langganan, analitik
-BACKLOG → gamifikasi, diskusi komunitas, mobile app, dsb.
+FASE 0 → Fondasi (selesai)         → auth, katalog, enrollment, progres, kuis, pembayaran, submission/review
+FASE 1 → Akademik inti + presensi  → roles/RBAC, tahun ajaran/term, program, mapel, kelas, enrollment,
+                                      penugasan guru, presensi siswa (per sesi) & presensi guru    [aktif]
+FASE 2 → Penilaian & kegiatan       → tugas, nilai, rapor, kegiatan sekolah/manajerial, pengumuman
+FASE 3 → Kurikulum & bahan ajar     → planning kurikulum/RPP, ketersediaan & distribusi textbook
+FASE 4 → Perpustakaan & sarana      → sirkulasi buku, inventaris ATK/sarpras
+FASE 5 → Integrasi & skala          → SPP/billing, notifikasi, audit, analitik
+BACKLOG → gamifikasi, diskusi, mobile app, multi-tenant
 ```
 
 ### 4.1 Autentikasi & Akun
@@ -79,6 +88,22 @@ BACKLOG → gamifikasi, diskusi komunitas, mobile app, dsb.
 - CRUD course/module/lesson/quiz, kelola reviewer & enrollment.
 - **Acceptance criteria**: hanya ADMIN; perubahan tidak merusak data progres peserta.
 
+### 4.10 Peran & RBAC (FASE 1)
+- Multi-peran (`UserRole`), sesi memuat `role` + `roles`, penjagaan rute (`proxy.ts`) & API (`requireApiRole`).
+- **Acceptance criteria**: user tanpa peran tidak bisa mengakses rute/API ber-peran; ADMIN/SUPER_ADMIN bisa kelola.
+
+### 4.11 Struktur Akademik (FASE 1)
+- Tahun ajaran → term, program (jenis/jenjang), mapel, kelas (rombel), keanggotaan siswa, penugasan guru.
+- Kelas akademik boleh mereferensikan `Course` sebagai materi (opsional).
+- **Acceptance criteria**: admin membuat program/kelas dan menambah siswa/guru; enrollment unik per (kelas, siswa); kapasitas kelas dihormati.
+
+### 4.12 Presensi (FASE 1)
+- Presensi siswa per sesi (HADIR/TERLAMBAT/ALPA/SAKIT/IZIN) dan presensi harian guru (check-in/out).
+- **Acceptance criteria**: guru hanya bisa mengisi presensi kelas yang diampu; rekap presensi tersedia untuk siswa & wali.
+
+### 4.13 Penilaian & Kegiatan (FASE 2)
+- Tugas, nilai, rapor sederhana, kegiatan sekolah/manajerial, pengumuman.
+
 ## 5. Model Data (ERD)
 
 Entitas utama (detail di `schema.prisma`):
@@ -102,6 +127,27 @@ erDiagram
   Course ||--o{ Enrollment : enrolled
   Course ||--o{ Certificate : issues
   Course ||--o{ Payment : paid
+
+  %% Akademik (Fase 1)
+  User ||--o{ UserRole : has
+  User ||--o| StudentProfile : student
+  User ||--o| TeacherProfile : teacher
+  User ||--o| GuardianProfile : guardian
+  GuardianProfile ||--o{ StudentProfile : guards
+  AcademicYear ||--o{ Term : has
+  Term ||--o{ AcademicClass : offers
+  Program ||--o{ AcademicClass : groups
+  Program ||--o{ Subject : has
+  Subject ||--o{ AcademicClass : subject
+  Course ||--o{ AcademicClass : material
+  AcademicClass ||--o{ ClassEnrollment : enrolls
+  User ||--o{ ClassEnrollment : student
+  AcademicClass ||--o{ TeachingAssignment : taught_by
+  User ||--o{ TeachingAssignment : teacher
+  AcademicClass ||--o{ AttendanceSession : sessions
+  AttendanceSession ||--o{ AttendanceRecord : records
+  User ||--o{ AttendanceRecord : student
+  User ||--o{ TeacherAttendance : check_in
 ```
 
 Constraint penting:
@@ -110,6 +156,12 @@ Constraint penting:
 - `Module @@unique([courseId, order])`, `Lesson @@unique([moduleId, order])`.
 - `Payment.mayarTransactionId` & `Payment.mayarInvoiceId` unik; `merchantRefId` untuk mencocokkan webhook.
 - Cascade delete pada child (module/lesson/progress/submission).
+- Akademik: `UserRole @@unique([userId, role])`, `Term @@unique([academicYearId, name])`,
+  `Subject @@unique([programId, name])`, `AcademicClass @@unique([termId, programId, name])`,
+  `ClassEnrollment @@unique([classId, studentId])`,
+  `TeachingAssignment @@unique([classId, teacherId, subjectId])`,
+  `AttendanceRecord @@unique([sessionId, studentId])`,
+  `TeacherAttendance @@unique([teacherId, date])`.
 
 ## 6. Non-Functional Requirements
 
@@ -170,3 +222,7 @@ Constraint penting:
 | 7 | Deploy | EasyPanel via Docker image (ADR-0005) |
 | 8 | Model belajar | Submission + review + sertifikat (ADR-0006) |
 | 9 | Kepatuhan | UU PDP + PCI scope minimal via Mayar |
+| 10 | Model penyewa | Satu instansi per deploy (tanpa `tenantId`) |
+| 11 | Peran | Multi-peran (`UserRole`) + RBAC berlapis (ADR-0007) |
+| 12 | Domain akademik | `AcademicClass` terpisah dari `Course`; presensi per sesi (ADR-0008) |
+| 13 | Penilaian & rapor | Fase 2 (ditunda) |
