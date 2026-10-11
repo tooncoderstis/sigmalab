@@ -7,6 +7,9 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com) dan proyek ini m
 Status terkini: [`STATUS.md`](STATUS.md).
 
 ## [Unreleased]
+### Fixed
+- Docker image: set `HOSTNAME=0.0.0.0` agar Next standalone tidak mengikat ke hostname container — memperbaiki healthcheck (`curl 127.0.0.1`) dan routing di EasyPanel Swarm (penyebab deploy task dianggap unhealthy).
+- `deploy/easypanel-docker/build-push.ps1`: build dengan `--provenance=false --sbom=false` (single-arch, tanpa attestation) agar lebih portabel saat pull.
 
 ## [0.2.0] - 2026-10-11
 ### Added

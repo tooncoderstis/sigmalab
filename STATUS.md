@@ -32,9 +32,10 @@ Perluasan arah: SigmaLab dari portal belajar **berbasis project** (B2C) menjadi 
 - **Fase 1 (akademik inti + presensi) selesai**: multi-peran & RBAC, struktur akademik, presensi siswa (per sesi) & guru, plus UI admin/guru/siswa/wali/super-admin.
 - **Fase 2A (penilaian, tugas, nilai, rapor) selesai**: assessment per kelas/mapel, unggah berkas tugas via S3-compatible (R2/MinIO) presigned URL, input nilai berbobot, rapor PDF (`@react-pdf/renderer`) dengan alur draf→terbit, UI guru/siswa/wali/admin. Lihat ADR-0009 & ADR-0010.
 - Migrasi DB non-destruktif (`phase1_academic_core`, `session_subject_relation`, `phase2a_grading`) + backfill `UserRole`.
-- **⚠️ DB produksi bersama sudah termigrasi Fase 1 & Fase 2A**: `DATABASE_URL` lokal menunjuk DB yang **sama** dengan service produksi (`.../sigmalabdb`), jadi tabel baru sudah ada di DB tsb walau kode belum di-deploy.
-- **Sudah di-commit & push** ke `origin/main` (Fase 1, commit terbaru); tag rilis & deploy menyusul.
-- Deploy produksi: EasyPanel service `sigmalab` (image `aasatech/sigmalab:latest`) masih menjalankan build **pra-Fase 1**; env produksi stale (`MAYAR_BASE_URL=api.mayar.club`) & **belum punya env S3**; image Fase 1/2A **belum di-build/push**. Mayar masih **sandbox**.
+- **⚠️ DB produksi bersama sudah termigrasi Fase 1 & Fase 2A**: `DATABASE_URL` lokal menunjuk DB yang **sama** dengan service produksi (`.../sigmalabdb`).
+- **Sudah di-commit & push** ke `origin/main`, termasuk tag rilis `v0.2.0`.
+- **Deploy produksi BERHASIL**: EasyPanel service `sigmalab` (project `m`) kini menjalankan image `aasatech/sigmalab:0.2.0` (Fase 1 + 2A); `GET /api/health` → 200 dan route terproteksi Fase 1/2A merespons. Catatan: image butuh `ENV HOSTNAME=0.0.0.0` (perbaikan Dockerfile) agar healthcheck/routing berfungsi.
+- **Env produksi masih perlu dibenahi**: `MAYAR_BASE_URL` masih `api.mayar.club` (stale) dan **belum ada env S3**, sehingga unggah berkas tugas belum aktif (endpoint balas 503). Mayar masih **sandbox**.
 
 ## Yang belum selesai / menunggu
 | Item | Catatan |

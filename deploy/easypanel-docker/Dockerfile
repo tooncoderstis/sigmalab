@@ -25,6 +25,9 @@ ARG APP_VERSION=dev
 ENV APP_VERSION=${APP_VERSION}
 ENV NODE_ENV=production
 ENV PORT=3000
+# Next standalone mengikat host ke $HOSTNAME; pastikan 0.0.0.0 agar healthcheck
+# (curl 127.0.0.1) dan routing proxy berfungsi.
+ENV HOSTNAME=0.0.0.0
 
 RUN apk add --no-cache curl
 

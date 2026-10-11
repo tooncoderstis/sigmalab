@@ -37,6 +37,10 @@ Setelah migrasi stabil, kembalikan `RUN_MIGRATIONS=false` agar start tetap cepat
 ## 5. Rollback
 Ubah tag image ke versi sebelumnya di EasyPanel → Deploy. Tidak perlu rebuild.
 
+## Troubleshooting
+- **Deploy stuck / task `unhealthy`**: image harus mengikat host `0.0.0.0` (`ENV HOSTNAME=0.0.0.0` sudah ada di Dockerfile). Tanpa itu, Next standalone mengikat ke hostname container sehingga `curl 127.0.0.1:3000/api/health` gagal dan Swarm tidak meroute task baru.
+- **`npm ci` gagal "out of sync"**: regenerate lockfile dengan npm yang sama dengan image (`node:22-alpine`, npm 10): `npx npm@10 install --package-lock-only`.
+
 ## Keamanan & operasional
 - Rotasi kredensial yang pernah terekspos; gunakan password DB kuat.
 - **Backup terjadwal** PostgreSQL (mis. `pg_dump` harian) + uji restore berkala.

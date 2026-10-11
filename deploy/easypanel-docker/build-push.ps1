@@ -13,6 +13,8 @@ $full = "${Image}:${Tag}"
 Write-Host "==> Building $full (linux/amd64)" -ForegroundColor Cyan
 docker build `
     --platform linux/amd64 `
+    --provenance=false `
+    --sbom=false `
     -f deploy/easypanel-docker/Dockerfile `
     --build-arg "APP_VERSION=$Tag" `
     -t $full `
