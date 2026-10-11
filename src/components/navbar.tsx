@@ -21,6 +21,7 @@ export default function Navbar() {
   const isTeacher = ownedRoles.has("TEACHER") || isManager;
   const isStudent = ownedRoles.has("STUDENT") || isManager;
   const isGuardian = ownedRoles.has("GUARDIAN") || isManager;
+  const isStaff = ownedRoles.has("STAFF") || isManager;
   const isSuperAdmin = ownedRoles.has("SUPER_ADMIN");
 
   const academicLinks = session
@@ -30,6 +31,7 @@ export default function Navbar() {
         isTeacher ? { href: "/guru", label: "Ruang Guru" } : null,
         isStudent ? { href: "/siswa", label: "Ruang Siswa" } : null,
         isGuardian ? { href: "/wali", label: "Ruang Wali" } : null,
+        isStaff ? { href: "/staf", label: "Ruang Staf" } : null,
       ].filter((link): link is { href: string; label: string } => link !== null)
     : [];
 

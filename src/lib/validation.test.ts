@@ -5,10 +5,13 @@ import {
   assignmentSubmissionInput,
   attendanceRecordInput,
   classInput,
+  distributionInput,
   gradeInput,
+  lessonPlanInput,
   presignInput,
   reportCardGenerateInput,
   slugify,
+  textbookInput,
 } from "./validation";
 
 describe("slugify", () => {
@@ -127,6 +130,38 @@ describe("reportCardGenerateInput", () => {
     expect(
       reportCardGenerateInput.safeParse({ studentId: "s1", termId: "t1" })
         .success
+    ).toBe(true);
+  });
+});
+
+describe("lessonPlanInput", () => {
+  it("mewajibkan classId, meetingNo, dan title", () => {
+    expect(lessonPlanInput.safeParse({ classId: "c1" }).success).toBe(false);
+    expect(
+      lessonPlanInput.safeParse({ classId: "c1", meetingNo: 1, title: "Pertemuan 1" })
+        .success
+    ).toBe(true);
+  });
+
+  it("menolak meetingNo nol/negatif", () => {
+    expect(
+      lessonPlanInput.safeParse({ classId: "c1", meetingNo: 0, title: "x" }).success
+    ).toBe(false);
+  });
+});
+
+describe("textbookInput", () => {
+  it("mewajibkan title", () => {
+    expect(textbookInput.safeParse({}).success).toBe(false);
+    expect(textbookInput.safeParse({ title: "Matematika 10" }).success).toBe(true);
+  });
+});
+
+describe("distributionInput", () => {
+  it("mewajibkan copyId dan studentId", () => {
+    expect(distributionInput.safeParse({ copyId: "cp1" }).success).toBe(false);
+    expect(
+      distributionInput.safeParse({ copyId: "cp1", studentId: "s1" }).success
     ).toBe(true);
   });
 });

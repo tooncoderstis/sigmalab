@@ -58,19 +58,28 @@ function sanitizeFileName(fileName: string): string {
   return base.length > 0 ? base.slice(-120) : "berkas";
 }
 
+/** Membuat object key unik dengan prefix & segmen tertentu. */
+export function buildStorageKey(
+  prefix: string,
+  fileName: string,
+  ...segments: string[]
+): string {
+  const unique =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return [prefix, ...segments, `${unique}-${sanitizeFileName(fileName)}`]
+    .filter((part) => part.length > 0)
+    .join("/");
+}
+
 /** Membuat object key unik untuk berkas tugas siswa. */
 export function buildAssignmentKey(
   assessmentId: string,
   studentId: string,
   fileName: string
 ): string {
-  const unique =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  return `assignments/${assessmentId}/${studentId}/${unique}-${sanitizeFileName(
-    fileName
-  )}`;
+  return buildStorageKey("assignments", fileName, assessmentId, studentId);
 }
 
 /** URL presigned untuk mengunggah (PUT) berkas langsung ke storage. */

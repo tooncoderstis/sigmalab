@@ -254,6 +254,107 @@ export const activityUpdateInput = z.object({
   targets: z.array(audienceTargetInput).max(50).optional(),
 });
 
+// ============================================================
+// FASE 3 — kurikulum/RPP & buku ajar
+// ============================================================
+
+export const lessonPlanStatusValues = ["DRAFT", "PUBLISHED"] as const;
+export const copyStatusValues = [
+  "AVAILABLE",
+  "LENT",
+  "LOST",
+  "DAMAGED",
+  "RETIRED",
+] as const;
+export const distributionStatusValues = ["LENT", "RETURNED", "LOST"] as const;
+
+export const lessonPlanInput = z.object({
+  classId: z.string().min(1),
+  subjectId: z.string().min(1).optional(),
+  termId: z.string().min(1).optional(),
+  meetingNo: z.number().int().positive().max(1000),
+  title: z.string().min(1).max(200),
+  objectives: z.string().max(20000).optional(),
+  activities: z.string().max(20000).optional(),
+  resources: z.string().max(20000).optional(),
+  assessment: z.string().max(20000).optional(),
+  scheduledDate: z.coerce.date().optional(),
+  status: z.enum(lessonPlanStatusValues).optional(),
+});
+
+export const lessonPlanUpdateInput = z.object({
+  subjectId: z.string().min(1).nullable().optional(),
+  termId: z.string().min(1).nullable().optional(),
+  meetingNo: z.number().int().positive().max(1000).optional(),
+  title: z.string().min(1).max(200).optional(),
+  objectives: z.string().max(20000).nullable().optional(),
+  activities: z.string().max(20000).nullable().optional(),
+  resources: z.string().max(20000).nullable().optional(),
+  assessment: z.string().max(20000).nullable().optional(),
+  scheduledDate: z.coerce.date().nullable().optional(),
+  status: z.enum(lessonPlanStatusValues).optional(),
+});
+
+export const textbookInput = z.object({
+  title: z.string().min(1).max(200),
+  author: z.string().max(200).optional(),
+  publisher: z.string().max(200).optional(),
+  isbn: z.string().max(30).optional(),
+  subjectId: z.string().min(1).optional(),
+  programId: z.string().min(1).optional(),
+  gradeLevel: z.string().max(50).optional(),
+  description: z.string().max(4000).optional(),
+  fileKey: z.string().max(500).optional(),
+  fileName: z.string().max(255).optional(),
+  coverUrl: z.string().max(500).optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const textbookUpdateInput = z.object({
+  title: z.string().min(1).max(200).optional(),
+  author: z.string().max(200).nullable().optional(),
+  publisher: z.string().max(200).nullable().optional(),
+  isbn: z.string().max(30).nullable().optional(),
+  subjectId: z.string().min(1).nullable().optional(),
+  programId: z.string().min(1).nullable().optional(),
+  gradeLevel: z.string().max(50).nullable().optional(),
+  description: z.string().max(4000).nullable().optional(),
+  fileKey: z.string().max(500).nullable().optional(),
+  fileName: z.string().max(255).nullable().optional(),
+  coverUrl: z.string().max(500).nullable().optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const textbookFileInput = z.object({
+  textbookId: z.string().min(1),
+  fileName: z.string().min(1).max(255),
+  mimeType: z.enum(assignmentFileTypes),
+  fileSize: z.number().int().positive().max(MAX_ASSIGNMENT_FILE_BYTES),
+});
+
+export const textbookCopyInput = z.object({
+  code: z.string().min(1).max(60),
+  conditionNote: z.string().max(500).optional(),
+});
+
+export const textbookCopyUpdateInput = z.object({
+  status: z.enum(copyStatusValues).optional(),
+  conditionNote: z.string().max(500).nullable().optional(),
+});
+
+export const distributionInput = z.object({
+  copyId: z.string().min(1),
+  studentId: z.string().min(1),
+  classId: z.string().min(1).optional(),
+  dueAt: z.coerce.date().optional(),
+  note: z.string().max(500).optional(),
+});
+
+export const distributionReturnInput = z.object({
+  status: z.enum(["RETURNED", "LOST"]).optional(),
+  note: z.string().max(500).optional(),
+});
+
 export function slugify(value: string): string {
   return value
     .toLowerCase()

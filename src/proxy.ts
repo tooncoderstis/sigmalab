@@ -5,6 +5,7 @@ import { auth } from "../auth";
 const rbacRules: { prefix: string; roles: string[] }[] = [
   { prefix: "/super-admin", roles: ["SUPER_ADMIN"] },
   { prefix: "/admin", roles: ["ADMIN", "SUPER_ADMIN", "REVIEWER"] },
+  { prefix: "/staf", roles: ["STAFF", "ADMIN", "SUPER_ADMIN"] },
   { prefix: "/guru", roles: ["TEACHER", "ADMIN", "SUPER_ADMIN"] },
   { prefix: "/siswa", roles: ["STUDENT", "ADMIN", "SUPER_ADMIN"] },
   { prefix: "/wali", roles: ["GUARDIAN", "ADMIN", "SUPER_ADMIN"] },
@@ -51,6 +52,7 @@ export const config = {
     "/dashboard/:path*",
     "/admin/:path*",
     "/super-admin/:path*",
+    "/staf/:path*",
     "/guru/:path*",
     "/siswa/:path*",
     "/wali/:path*",

@@ -75,6 +75,18 @@ export default async function WaliPage() {
       : Promise.resolve([]),
   ]);
 
+  const bookLoans = studentIds.length
+    ? await prisma.textbookDistribution.findMany({
+        where: { studentId: { in: studentIds } },
+        include: {
+          student: { select: { name: true } },
+          copy: { include: { textbook: { select: { title: true } } } },
+        },
+        orderBy: { distributedAt: "desc" },
+        take: 100,
+      })
+    : [];
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <section className="section-padding bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -162,6 +174,34 @@ export default async function WaliPage() {
                         </li>
                       ))
                 )}
+              </ul>
+            )}
+          </div>
+
+          <div className="card p-6">
+            <h2 className="text-lg font-bold mb-4">Buku Anak</h2>
+            {bookLoans.length === 0 ? (
+              <p className="text-sm text-gray-500">Belum ada buku dipinjam.</p>
+            ) : (
+              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                {bookLoans.map((loan) => (
+                  <li
+                    key={loan.id}
+                    className="py-2 flex justify-between items-center text-sm"
+                  >
+                    <span>
+                      {loan.student.name} · {loan.copy.textbook.title}{" "}
+                      <span className="text-gray-400">({loan.copy.code})</span>
+                    </span>
+                    <span className="font-medium">
+                      {loan.status === "LENT"
+                        ? "Dipinjam"
+                        : loan.status === "RETURNED"
+                          ? "Dikembalikan"
+                          : "Hilang"}
+                    </span>
+                  </li>
+                ))}
               </ul>
             )}
           </div>

@@ -80,6 +80,28 @@ enum AnnouncementStatus {
   PUBLISHED
 }
 
+// Status RPP (rencana pembelajaran)
+enum LessonPlanStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// Status ketersediaan eksemplar buku
+enum CopyStatus {
+  AVAILABLE
+  LENT
+  LOST
+  DAMAGED
+  RETIRED
+}
+
+// Status distribusi buku
+enum DistributionStatus {
+  LENT
+  RETURNED
+  LOST
+}
+
 enum CourseLevel {
   PEMULA
   MENENGAH
@@ -182,6 +204,12 @@ model User {
   authoredAnnouncements Announcement[]     @relation("AnnouncementAuthor")
   announcementReads     AnnouncementRead[]
   createdActivities     SchoolActivity[]   @relation("ActivityCreator")
+
+  // Akademik (Fase 3): kurikulum/RPP & buku ajar
+  lessonPlans          LessonPlan[]           @relation("LessonPlanAuthor")
+  textbooksCreated     Textbook[]             @relation("TextbookCreator")
+  textbookLoans        TextbookDistribution[] @relation("DistributionStudent")
+  createdDistributions TextbookDistribution[] @relation("DistributionCreator")
 
   @@index([email])
 }
@@ -516,6 +544,7 @@ model Term {
   classes        AcademicClass[]
   assessments    Assessment[]
   reportCards    ReportCard[]
+  lessonPlans    LessonPlan[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -535,6 +564,7 @@ model Program {
   students            StudentProfile[]
   announcementTargets AnnouncementTarget[]
   activityTargets     ActivityTarget[]
+  textbooks           Textbook[]
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 }
@@ -550,6 +580,8 @@ model Subject {
   attendanceSessions AttendanceSession[]
   assessments        Assessment[]
   reportEntries      ReportCardEntry[]
+  lessonPlans        LessonPlan[]
+  textbooks          Textbook[]
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
 
@@ -558,28 +590,30 @@ model Subject {
 }
 
 model AcademicClass {
-  id                  String               @id @default(cuid())
-  name                String // contoh "X IPA 1"
-  programId           String
-  program             Program              @relation(fields: [programId], references: [id])
-  termId              String
-  term                Term                 @relation(fields: [termId], references: [id])
-  subjectId           String?
-  subject             Subject?             @relation(fields: [subjectId], references: [id])
-  courseId            String? // materi belajar opsional (Course lama)
-  course              Course?              @relation(fields: [courseId], references: [id])
-  homeroomTeacherId   String?
-  homeroomTeacher     User?                @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
-  capacity            Int?
-  isActive            Boolean              @default(true)
-  enrollments         ClassEnrollment[]
-  assignments         TeachingAssignment[]
-  sessions            AttendanceSession[]
-  assessments         Assessment[]
-  announcementTargets AnnouncementTarget[]
-  activityTargets     ActivityTarget[]
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
+  id                    String                 @id @default(cuid())
+  name                  String // contoh "X IPA 1"
+  programId             String
+  program               Program                @relation(fields: [programId], references: [id])
+  termId                String
+  term                  Term                   @relation(fields: [termId], references: [id])
+  subjectId             String?
+  subject               Subject?               @relation(fields: [subjectId], references: [id])
+  courseId              String? // materi belajar opsional (Course lama)
+  course                Course?                @relation(fields: [courseId], references: [id])
+  homeroomTeacherId     String?
+  homeroomTeacher       User?                  @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  capacity              Int?
+  isActive              Boolean                @default(true)
+  enrollments           ClassEnrollment[]
+  assignments           TeachingAssignment[]
+  sessions              AttendanceSession[]
+  assessments           Assessment[]
+  announcementTargets   AnnouncementTarget[]
+  activityTargets       ActivityTarget[]
+  lessonPlans           LessonPlan[]
+  textbookDistributions TextbookDistribution[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
 
   @@unique([termId, programId, name])
   @@index([programId])
@@ -868,4 +902,96 @@ model ActivityTarget {
   @@index([activityId])
   @@index([classId])
   @@index([programId])
+}
+
+// ============================================================
+// AKADEMIK (FASE 3): KURIKULUM/RPP & BUKU AJAR
+// ============================================================
+
+model LessonPlan {
+  id            String           @id @default(cuid())
+  classId       String
+  class         AcademicClass    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjectId     String?
+  subject       Subject?         @relation(fields: [subjectId], references: [id])
+  termId        String?
+  term          Term?            @relation(fields: [termId], references: [id])
+  authorId      String?
+  author        User?            @relation("LessonPlanAuthor", fields: [authorId], references: [id])
+  meetingNo     Int
+  title         String
+  objectives    String?
+  activities    String?
+  resources     String?
+  assessment    String?
+  scheduledDate DateTime?
+  status        LessonPlanStatus @default(DRAFT)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@unique([classId, meetingNo])
+  @@index([classId])
+  @@index([authorId])
+}
+
+model Textbook {
+  id          String         @id @default(cuid())
+  title       String
+  author      String?
+  publisher   String?
+  isbn        String?        @unique
+  subjectId   String?
+  subject     Subject?       @relation(fields: [subjectId], references: [id])
+  programId   String?
+  program     Program?       @relation(fields: [programId], references: [id])
+  gradeLevel  String?
+  description String?
+  fileKey     String?
+  fileName    String?
+  coverUrl    String?
+  isActive    Boolean        @default(true)
+  createdById String?
+  createdBy   User?          @relation("TextbookCreator", fields: [createdById], references: [id])
+  copies      TextbookCopy[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([subjectId])
+  @@index([programId])
+}
+
+model TextbookCopy {
+  id            String                 @id @default(cuid())
+  textbookId    String
+  textbook      Textbook               @relation(fields: [textbookId], references: [id], onDelete: Cascade)
+  code          String                 @unique
+  status        CopyStatus             @default(AVAILABLE)
+  conditionNote String?
+  distributions TextbookDistribution[]
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@index([textbookId])
+  @@index([status])
+}
+
+model TextbookDistribution {
+  id            String             @id @default(cuid())
+  copyId        String
+  copy          TextbookCopy       @relation(fields: [copyId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       User               @relation("DistributionStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  classId       String?
+  class         AcademicClass?     @relation(fields: [classId], references: [id])
+  status        DistributionStatus @default(LENT)
+  distributedAt DateTime           @default(now())
+  dueAt         DateTime?
+  returnedAt    DateTime?
+  note          String?
+  createdById   String?
+  createdBy     User?              @relation("DistributionCreator", fields: [createdById], references: [id])
+
+  @@index([copyId])
+  @@index([studentId])
+  @@index([status])
 }
