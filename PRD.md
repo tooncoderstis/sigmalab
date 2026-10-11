@@ -110,6 +110,12 @@ BACKLOG → gamifikasi, diskusi, mobile app, multi-tenant
 - **Kegiatan sekolah** (agenda dengan jadwal, lokasi, kategori) dengan audiens fleksibel.
 - **Acceptance criteria**: guru pengampu dapat membuat aktivitas & mengisi nilai hanya untuk kelas yang diampu; siswa/wali hanya melihat nilai/rapor yang sudah dipublikasikan; nilai akhir dihitung dari aktivitas terpublikasi; rapor dapat diunduh sebagai PDF; pengumuman/kegiatan hanya terlihat oleh audiens yang ditargetkan (wali ikut audiens anak); pengumuman dapat ditandai sudah dibaca.
 
+### 4.14 Kurikulum/RPP & Buku Ajar (FASE 3)
+- **RPP** per kelas per pertemuan (`LessonPlan`, unik per `classId`+`meetingNo`): tujuan, kegiatan, sumber/media, penilaian, jadwal, alur draf→terbit.
+- **Buku ajar (textbook)**: katalog (`Textbook`) dengan metadata + berkas digital opsional (S3), eksemplar per fisik (`TextbookCopy`, kode unik + status), dan distribusi eksemplar ke siswa (`TextbookDistribution`).
+- Ketersediaan dihitung dari eksemplar `AVAILABLE`; distribusi mengubah status eksemplar.
+- **Acceptance criteria**: guru pengampu mengelola RPP hanya untuk kelasnya; eksemplar tidak bisa dipinjam dua kali (hanya `AVAILABLE`); distribusi tercatat dan dapat dikembalikan/ditandai hilang; berkas e-book hanya dapat diunggah saat storage dikonfigurasi.
+
 ## 5. Model Data (ERD)
 
 Entitas utama (detail di `schema.prisma`):

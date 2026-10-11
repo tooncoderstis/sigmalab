@@ -8,6 +8,14 @@ Status terkini: [`STATUS.md`](STATUS.md).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-11
+### Added
+- Fase 3 (kurikulum/RPP & buku ajar): entitas `LessonPlan`, `Textbook`, `TextbookCopy`, `TextbookDistribution` + enum `LessonPlanStatus`, `CopyStatus`, `DistributionStatus` (ADR-0012).
+- API akademik: `lesson-plans` (+`[lessonPlanId]`), `textbooks` (+`[textbookId]`, `[textbookId]/copies`, `[textbookId]/file`), `textbook-copies/[copyId]`, `textbook-distributions` (+`[distributionId]`), `uploads/textbook/presign`.
+- Area peran baru **`/staf`** (STAFF) dengan manajemen buku ajar: katalog, eksemplar, distribusi/kembalikan, unggah e-book (S3); aturan `proxy.ts` untuk `/staf`.
+- UI guru: RPP per kelas (`guru/kelas/[classId]/rpp`); UI siswa/wali: daftar buku & RPP terbit.
+- Uji: unit `textbook` + validasi Fase 3; route `lesson-plans`, `textbooks`, `textbook-distributions`.
+
 ## [0.3.0] - 2026-10-11
 ### Added
 - Fase 2B/2C (pengumuman & kegiatan sekolah): entitas `Announcement`, `AnnouncementTarget`, `AnnouncementRead`, `SchoolActivity`, `ActivityTarget` + enum `AnnouncementStatus` (ADR-0011).
