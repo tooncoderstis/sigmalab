@@ -7,6 +7,15 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com) dan proyek ini m
 Status terkini: [`STATUS.md`](STATUS.md).
 
 ## [Unreleased]
+
+## [0.3.0] - 2026-10-11
+### Added
+- Fase 2B/2C (pengumuman & kegiatan sekolah): entitas `Announcement`, `AnnouncementTarget`, `AnnouncementRead`, `SchoolActivity`, `ActivityTarget` + enum `AnnouncementStatus` (ADR-0011).
+- Audiens fleksibel (semua / per-peran / per-kelas / per-program) via `src/lib/audience.ts` + konteks user (`audience-context.ts`); wali ikut audiens kelas/program anaknya.
+- API akademik: `announcements` (+`[id]`, `[id]/read`) dan `activities` (+`[id]`) dengan guard peran manager.
+- UI: admin kelola & terbitkan pengumuman/kegiatan; feed pengumuman (badge baru + tandai dibaca) dan kegiatan mendatang di halaman guru, siswa, dan wali.
+- Uji: unit `matchesAudience` + validasi; route create pengumuman, tandai dibaca, dan create kegiatan.
+
 ### Fixed
 - Docker image: set `HOSTNAME=0.0.0.0` agar Next standalone tidak mengikat ke hostname container — memperbaiki healthcheck (`curl 127.0.0.1`) dan routing di EasyPanel Swarm (penyebab deploy task dianggap unhealthy).
 - `deploy/easypanel-docker/build-push.ps1`: build dengan `--provenance=false --sbom=false` (single-arch, tanpa attestation) agar lebih portabel saat pull.

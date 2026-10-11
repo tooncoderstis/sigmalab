@@ -106,8 +106,9 @@ BACKLOG → gamifikasi, diskusi, mobile app, multi-tenant
 - Tugas: siswa mengunggah berkas (object storage S3-compatible — ADR-0009); guru mengunduh & menilai.
 - Nilai per siswa per aktivitas; nilai akhir mapel = rata-rata berbobot; predikat A/B/C/D.
 - Rapor per siswa per term (PDF, `@react-pdf/renderer`), alur draf → terbit (dipublikasikan).
-- Kegiatan sekolah/manajerial dan pengumuman (menyusul: sub-fase 2B/2C).
-- **Acceptance criteria**: guru pengampu dapat membuat aktivitas & mengisi nilai hanya untuk kelas yang diampu; siswa/wali hanya melihat nilai/rapor yang sudah dipublikasikan; nilai akhir dihitung dari aktivitas terpublikasi; rapor dapat diunduh sebagai PDF.
+- **Pengumuman** (isi Markdown, alur draf→terbit, pin, kedaluwarsa) dengan audiens fleksibel (semua / per-peran / per-kelas / per-program) dan **tanda dibaca** per pengguna.
+- **Kegiatan sekolah** (agenda dengan jadwal, lokasi, kategori) dengan audiens fleksibel.
+- **Acceptance criteria**: guru pengampu dapat membuat aktivitas & mengisi nilai hanya untuk kelas yang diampu; siswa/wali hanya melihat nilai/rapor yang sudah dipublikasikan; nilai akhir dihitung dari aktivitas terpublikasi; rapor dapat diunduh sebagai PDF; pengumuman/kegiatan hanya terlihat oleh audiens yang ditargetkan (wali ikut audiens anak); pengumuman dapat ditandai sudah dibaca.
 
 ## 5. Model Data (ERD)
 
