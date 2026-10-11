@@ -46,3 +46,10 @@ Ubah tag image ke versi sebelumnya di EasyPanel → Deploy. Tidak perlu rebuild.
 - **Backup terjadwal** PostgreSQL (mis. `pg_dump` harian) + uji restore berkala.
 - Pantau log container untuk error route & webhook.
 - Jangan pernah menaruh rahasia di repo; hanya via env EasyPanel.
+
+## Storage objek self-hosted (MinIO)
+Bila memakai MinIO di EasyPanel (bukan penyedia eksternal):
+- Service `minio` — image `bitnamilegacy/minio`, volume `minio-data` di `/bitnami/minio/data`, domain HTTPS ke port 9000.
+- Env: `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, `MINIO_DEFAULT_BUCKETS=sigmalab-tugas`, `MINIO_API_CORS_ALLOW_ORIGIN=https://<domain-app>`.
+- Buat service account + bucket via `mc`; isi `S3_ENDPOINT` (domain MinIO), `S3_REGION=us-east-1`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` di service app.
+- **Backup** volume `minio-data` berkala (`mc mirror` atau snapshot volume). Verifikasi via `GET /api/health` → `storage: up`.

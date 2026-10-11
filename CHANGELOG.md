@@ -8,6 +8,10 @@ Status terkini: [`STATUS.md`](STATUS.md).
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-10-11
+### Added
+- `/api/health` melaporkan status penyimpanan objek (`storage: up|unconfigured`) untuk verifikasi operasional (ADR-0009).
+
 ## [0.6.0] - 2026-10-11
 ### Added
 - Fase 5 (SPP, notifikasi, audit, analitik): entitas `Invoice`, `Notification`, `AuditLog` + enum `InvoiceStatus`, `NotificationType` (ADR-0014).

@@ -5,7 +5,7 @@
 > **Jangan simpan kredensial di file ini.**
 
 - **Terakhir diperbarui**: 2026-10-11
-- **Versi terbaru**: tag source `v0.6.0` (Fase 1–5); deploy produksi menyusul
+- **Versi terbaru**: tag source `v0.6.1` (Fase 1–5 + status storage); deploy produksi menyusul
 - **Platform**: Next.js 16.3 (App Router, TS) + Prisma 5 + PostgreSQL + NextAuth v5 · Node 22 · Payment: Mayar (sandbox) · Deploy: EasyPanel VPS (Docker image)
 
 ## TL;DR (konteks 30 detik)
@@ -39,7 +39,8 @@ Perluasan arah: SigmaLab dari portal belajar **berbasis project** (B2C) menjadi 
 - **⚠️ DB produksi bersama sudah termigrasi Fase 1–5**: `DATABASE_URL` lokal menunjuk DB yang **sama** dengan service produksi (`.../sigmalabdb`).
 - **Sudah di-commit & push** ke `origin/main`, termasuk tag rilis `v0.6.0`.
 - **Deploy produksi BERHASIL**: EasyPanel service `sigmalab` (project `m`) kini menjalankan image `aasatech/sigmalab:0.6.0` (Fase 1–5); `GET /api/health` → 200 dan route terproteksi Fase 1–5 merespons. Catatan: image butuh `ENV HOSTNAME=0.0.0.0` (perbaikan Dockerfile) agar healthcheck/routing berfungsi.
-- **Env produksi masih perlu dibenahi**: `MAYAR_BASE_URL` masih `api.mayar.club` (stale) dan **belum ada env S3**, sehingga unggah berkas tugas belum aktif (endpoint balas 503). Mayar masih **sandbox**.
+- **Storage objek produksi AKTIF**: MinIO self-hosted (EasyPanel service `m/minio`, bucket `sigmalab-tugas`) via env `S3_*`; unggah berkas tugas/e-book berfungsi (ADR-0009). Status: `GET /api/health` → `storage: up`. Volume `minio-data` perlu backup berkala.
+- **Mayar tetap seperti sekarang**: `MAYAR_BASE_URL` masih `api.mayar.club` (stale) dan **sengaja tidak diubah** atas permintaan; Mayar **sandbox**.
 
 ## Yang belum selesai / menunggu
 | Item | Catatan |
