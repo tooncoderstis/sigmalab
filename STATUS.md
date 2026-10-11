@@ -36,7 +36,7 @@ Perluasan arah: SigmaLab dari portal belajar **berbasis project** (B2C) menjadi 
 - Migrasi DB non-destruktif (`phase1_academic_core`, `session_subject_relation`, `phase2a_grading`, `phase2b_announcements_activities`, `phase3_curriculum_textbook`) + backfill `UserRole`.
 - **⚠️ DB produksi bersama sudah termigrasi Fase 1 & Fase 2A**: `DATABASE_URL` lokal menunjuk DB yang **sama** dengan service produksi (`.../sigmalabdb`).
 - **Sudah di-commit & push** ke `origin/main`, termasuk tag rilis `v0.2.0`.
-- **Deploy produksi BERHASIL**: EasyPanel service `sigmalab` (project `m`) kini menjalankan image `aasatech/sigmalab:0.3.0` (Fase 1 + Fase 2 lengkap); `GET /api/health` → 200 dan route terproteksi Fase 1/2 merespons. Catatan: image butuh `ENV HOSTNAME=0.0.0.0` (perbaikan Dockerfile) agar healthcheck/routing berfungsi.
+- **Deploy produksi BERHASIL**: EasyPanel service `sigmalab` (project `m`) kini menjalankan image `aasatech/sigmalab:0.4.0` (Fase 1–3); `GET /api/health` → 200 dan route terproteksi Fase 1–3 merespons. Catatan: image butuh `ENV HOSTNAME=0.0.0.0` (perbaikan Dockerfile) agar healthcheck/routing berfungsi.
 - **Env produksi masih perlu dibenahi**: `MAYAR_BASE_URL` masih `api.mayar.club` (stale) dan **belum ada env S3**, sehingga unggah berkas tugas belum aktif (endpoint balas 503). Mayar masih **sandbox**.
 
 ## Yang belum selesai / menunggu
