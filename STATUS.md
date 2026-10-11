@@ -38,7 +38,7 @@ Perluasan arah: SigmaLab dari portal belajar **berbasis project** (B2C) menjadi 
 - Migrasi DB non-destruktif (`phase1_academic_core`, `session_subject_relation`, `phase2a_grading`, `phase2b_announcements_activities`, `phase3_curriculum_textbook`, `phase4_library_inventory`, `phase5_billing_notifications_audit`) + backfill `UserRole`.
 - **⚠️ DB produksi bersama sudah termigrasi Fase 1–5**: `DATABASE_URL` lokal menunjuk DB yang **sama** dengan service produksi (`.../sigmalabdb`).
 - **Sudah di-commit & push** ke `origin/main`, termasuk tag rilis `v0.6.0`.
-- **Deploy produksi BERHASIL**: EasyPanel service `sigmalab` (project `m`) kini menjalankan image `aasatech/sigmalab:0.6.0` (Fase 1–5); `GET /api/health` → 200 dan route terproteksi Fase 1–5 merespons. Catatan: image butuh `ENV HOSTNAME=0.0.0.0` (perbaikan Dockerfile) agar healthcheck/routing berfungsi.
+- **Deploy produksi BERHASIL**: EasyPanel service `sigmalab` (project `m`) kini menjalankan image `aasatech/sigmalab:0.6.1` (Fase 1–5 + status storage); `GET /api/health` → `{"status":"ok","db":"up","storage":"up"}` dan route terproteksi Fase 1–5 merespons. Catatan: image butuh `ENV HOSTNAME=0.0.0.0` (perbaikan Dockerfile) agar healthcheck/routing berfungsi.
 - **Storage objek produksi AKTIF**: MinIO self-hosted (EasyPanel service `m/minio`, bucket `sigmalab-tugas`) via env `S3_*`; unggah berkas tugas/e-book berfungsi (ADR-0009). Status: `GET /api/health` → `storage: up`. Volume `minio-data` perlu backup berkala.
 - **Mayar tetap seperti sekarang**: `MAYAR_BASE_URL` masih `api.mayar.club` (stale) dan **sengaja tidak diubah** atas permintaan; Mayar **sandbox**.
 
