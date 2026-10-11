@@ -1,8 +1,8 @@
 # ADR-0004: Penyimpanan submission (link repo fase awal)
 
-- **Status**: Diterima
+- **Status**: Sebagian digantikan oleh [ADR-0009](0009-storage-objek-tugas.md) (unggah berkas tugas siswa via S3-compatible)
 - **Tanggal**: 2026-09-27
-- **Catatan**: menunda unggah file; dievaluasi ulang saat Fase 2/3 PRD.
+- **Catatan**: menunda unggah file; dievaluasi ulang saat Fase 2/3 PRD. Fase 2 mengaktifkan unggah berkas lewat ADR-0009; tautan repo (`repoUrl`) tetap berlaku untuk submission marketplace lama.
 
 ## Konteks
 Fitur inti SigmaLab adalah submission project. Model `Submission` sudah menyediakan `repoUrl` dan `fileUrl`. Menyediakan unggah file menuntut object storage, kebijakan retensi, kuota, pemindaian konten, dan biaya — sementara mayoritas project belajar (kode/analisis) wajar dibagikan sebagai repositori Git.
