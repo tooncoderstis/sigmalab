@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { userHasRole } from "@/lib/rbac";
+import { getAnnouncementFeed, getUpcomingActivities } from "@/lib/feeds";
+import AnnouncementFeed from "@/components/announcement-feed";
 
 const STATUS_LABEL: Record<string, string> = {
   PRESENT: "Hadir",
@@ -70,6 +72,16 @@ export default async function SiswaPage() {
     return acc;
   }, {});
 
+  const feedUser = {
+    id: userId,
+    role: session.user.role,
+    roles: session.user.roles ?? [],
+  };
+  const [feed, activities] = await Promise.all([
+    getAnnouncementFeed(feedUser),
+    getUpcomingActivities(feedUser),
+  ]);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <section className="section-padding bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -86,6 +98,11 @@ export default async function SiswaPage() {
       <section className="section-padding">
         <div className="container-max grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
+            <div className="card p-6">
+              <h2 className="text-lg font-bold mb-4">Pengumuman</h2>
+              <AnnouncementFeed announcements={feed} />
+            </div>
+
             <div className="card p-6">
               <h2 className="text-lg font-bold mb-4">Kelas Saya</h2>
               {enrollments.length === 0 ? (
@@ -176,6 +193,29 @@ export default async function SiswaPage() {
                   </li>
                 ))}
               </ul>
+            </div>
+
+            <div className="card p-6 h-fit">
+              <h2 className="text-lg font-bold mb-4">Kegiatan Mendatang</h2>
+              {activities.length === 0 ? (
+                <p className="text-sm text-gray-500">Belum ada kegiatan.</p>
+              ) : (
+                <ul className="space-y-2 text-sm">
+                  {activities.map((act) => (
+                    <li key={act.id}>
+                      <p className="font-medium">{act.title}</p>
+                      <p className="text-gray-500">
+                        {new Date(act.startAt).toLocaleDateString("id-ID", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                        {act.location ? ` · ${act.location}` : ""}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <div className="card p-6 h-fit">

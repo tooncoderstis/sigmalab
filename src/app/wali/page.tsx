@@ -2,6 +2,7 @@ import { auth } from "../../../auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { userHasRole } from "@/lib/rbac";
+import FeedSections from "@/components/feed-sections";
 
 const STATUS_LABEL: Record<string, string> = {
   PRESENT: "Hadir",
@@ -89,6 +90,7 @@ export default async function WaliPage() {
 
       <section className="section-padding">
         <div className="container-max space-y-6">
+          <FeedSections user={session.user} />
           <div className="card p-6">
             <h2 className="text-lg font-bold mb-4">Anak Terhubung</h2>
             {!guardian || guardian.students.length === 0 ? (

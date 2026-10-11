@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { userHasRole } from "@/lib/rbac";
+import FeedSections from "@/components/feed-sections";
 import CheckIn from "./check-in";
 
 function startOfDayUtc(value: Date): Date {
@@ -88,6 +89,12 @@ export default async function GuruPage() {
               ))}
             </div>
           )}
+        </div>
+      </section>
+
+      <section className="section-padding">
+        <div className="container-max space-y-6">
+          <FeedSections user={session.user} />
         </div>
       </section>
     </div>

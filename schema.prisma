@@ -74,6 +74,12 @@ enum ReportCardStatus {
   PUBLISHED
 }
 
+// Status pengumuman
+enum AnnouncementStatus {
+  DRAFT
+  PUBLISHED
+}
+
 enum CourseLevel {
   PEMULA
   MENENGAH
@@ -171,6 +177,11 @@ model User {
   grades                Grade[]                @relation("GradeStudent")
   gradesGiven           Grade[]                @relation("GradeMarker")
   reportCards           ReportCard[]           @relation("ReportCardStudent")
+
+  // Akademik (Fase 2B/2C): pengumuman & kegiatan
+  authoredAnnouncements Announcement[]     @relation("AnnouncementAuthor")
+  announcementReads     AnnouncementRead[]
+  createdActivities     SchoolActivity[]   @relation("ActivityCreator")
 
   @@index([email])
 }
@@ -513,17 +524,19 @@ model Term {
 }
 
 model Program {
-  id          String           @id @default(cuid())
-  name        String           @unique
-  slug        String           @unique
-  type        ProgramType      @default(SEKOLAH)
-  gradeLevel  String?
-  description String?
-  classes     AcademicClass[]
-  subjects    Subject[]
-  students    StudentProfile[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id                  String               @id @default(cuid())
+  name                String               @unique
+  slug                String               @unique
+  type                ProgramType          @default(SEKOLAH)
+  gradeLevel          String?
+  description         String?
+  classes             AcademicClass[]
+  subjects            Subject[]
+  students            StudentProfile[]
+  announcementTargets AnnouncementTarget[]
+  activityTargets     ActivityTarget[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 }
 
 model Subject {
@@ -545,26 +558,28 @@ model Subject {
 }
 
 model AcademicClass {
-  id                String               @id @default(cuid())
-  name              String // contoh "X IPA 1"
-  programId         String
-  program           Program              @relation(fields: [programId], references: [id])
-  termId            String
-  term              Term                 @relation(fields: [termId], references: [id])
-  subjectId         String?
-  subject           Subject?             @relation(fields: [subjectId], references: [id])
-  courseId          String? // materi belajar opsional (Course lama)
-  course            Course?              @relation(fields: [courseId], references: [id])
-  homeroomTeacherId String?
-  homeroomTeacher   User?                @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
-  capacity          Int?
-  isActive          Boolean              @default(true)
-  enrollments       ClassEnrollment[]
-  assignments       TeachingAssignment[]
-  sessions          AttendanceSession[]
-  assessments       Assessment[]
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
+  id                  String               @id @default(cuid())
+  name                String // contoh "X IPA 1"
+  programId           String
+  program             Program              @relation(fields: [programId], references: [id])
+  termId              String
+  term                Term                 @relation(fields: [termId], references: [id])
+  subjectId           String?
+  subject             Subject?             @relation(fields: [subjectId], references: [id])
+  courseId            String? // materi belajar opsional (Course lama)
+  course              Course?              @relation(fields: [courseId], references: [id])
+  homeroomTeacherId   String?
+  homeroomTeacher     User?                @relation("HomeroomTeacher", fields: [homeroomTeacherId], references: [id])
+  capacity            Int?
+  isActive            Boolean              @default(true)
+  enrollments         ClassEnrollment[]
+  assignments         TeachingAssignment[]
+  sessions            AttendanceSession[]
+  assessments         Assessment[]
+  announcementTargets AnnouncementTarget[]
+  activityTargets     ActivityTarget[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
   @@unique([termId, programId, name])
   @@index([programId])
@@ -766,4 +781,91 @@ model ReportCardEntry {
   @@unique([reportCardId, subjectId])
   @@index([reportCardId])
   @@index([subjectId])
+}
+
+// ============================================================
+// AKADEMIK (FASE 2B/2C): PENGUMUMAN & KEGIATAN SEKOLAH
+// ============================================================
+
+model Announcement {
+  id          String               @id @default(cuid())
+  title       String
+  body        String // Markdown
+  status      AnnouncementStatus   @default(DRAFT)
+  pinned      Boolean              @default(false)
+  audienceAll Boolean              @default(false)
+  authorId    String?
+  author      User?                @relation("AnnouncementAuthor", fields: [authorId], references: [id])
+  publishedAt DateTime?
+  expiresAt   DateTime?
+  targets     AnnouncementTarget[]
+  reads       AnnouncementRead[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([status])
+  @@index([pinned])
+  @@index([publishedAt])
+}
+
+// Target audiens: salah satu dari role / classId / programId
+model AnnouncementTarget {
+  id             String         @id @default(cuid())
+  announcementId String
+  announcement   Announcement   @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  role           Role?
+  classId        String?
+  class          AcademicClass? @relation(fields: [classId], references: [id], onDelete: Cascade)
+  programId      String?
+  program        Program?       @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([announcementId])
+  @@index([classId])
+  @@index([programId])
+}
+
+model AnnouncementRead {
+  id             String       @id @default(cuid())
+  announcementId String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt         DateTime     @default(now())
+
+  @@unique([announcementId, userId])
+  @@index([announcementId])
+  @@index([userId])
+}
+
+model SchoolActivity {
+  id          String           @id @default(cuid())
+  title       String
+  description String?
+  startAt     DateTime
+  endAt       DateTime?
+  location    String?
+  category    String?
+  audienceAll Boolean          @default(false)
+  authorId    String?
+  author      User?            @relation("ActivityCreator", fields: [authorId], references: [id])
+  targets     ActivityTarget[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([startAt])
+}
+
+model ActivityTarget {
+  id         String         @id @default(cuid())
+  activityId String
+  activity   SchoolActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  role       Role?
+  classId    String?
+  class      AcademicClass? @relation(fields: [classId], references: [id], onDelete: Cascade)
+  programId  String?
+  program    Program?       @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([activityId])
+  @@index([classId])
+  @@index([programId])
 }

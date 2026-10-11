@@ -196,6 +196,64 @@ export const reportCardUpdateInput = z.object({
   homeroomNote: z.string().max(4000).nullable().optional(),
 });
 
+// ============================================================
+// FASE 2B/2C — pengumuman & kegiatan sekolah
+// ============================================================
+
+export const announcementStatusValues = ["DRAFT", "PUBLISHED"] as const;
+
+const audienceTargetInput = z
+  .object({
+    role: z.enum(roleValues).optional(),
+    classId: z.string().min(1).optional(),
+    programId: z.string().min(1).optional(),
+  })
+  .refine((t) => Boolean(t.role || t.classId || t.programId), {
+    message: "Target audiens butuh salah satu: role, classId, atau programId",
+  });
+
+export const announcementInput = z.object({
+  title: z.string().min(1).max(200),
+  body: z.string().min(1).max(20000),
+  status: z.enum(announcementStatusValues).optional(),
+  pinned: z.boolean().optional(),
+  audienceAll: z.boolean().optional(),
+  expiresAt: z.coerce.date().optional(),
+  targets: z.array(audienceTargetInput).max(50).optional(),
+});
+
+export const announcementUpdateInput = z.object({
+  title: z.string().min(1).max(200).optional(),
+  body: z.string().min(1).max(20000).optional(),
+  pinned: z.boolean().optional(),
+  status: z.enum(announcementStatusValues).optional(),
+  audienceAll: z.boolean().optional(),
+  expiresAt: z.coerce.date().nullable().optional(),
+  targets: z.array(audienceTargetInput).max(50).optional(),
+});
+
+export const activityInput = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().max(10000).optional(),
+  startAt: z.coerce.date(),
+  endAt: z.coerce.date().optional(),
+  location: z.string().max(200).optional(),
+  category: z.string().max(100).optional(),
+  audienceAll: z.boolean().optional(),
+  targets: z.array(audienceTargetInput).max(50).optional(),
+});
+
+export const activityUpdateInput = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(10000).nullable().optional(),
+  startAt: z.coerce.date().optional(),
+  endAt: z.coerce.date().nullable().optional(),
+  location: z.string().max(200).nullable().optional(),
+  category: z.string().max(100).nullable().optional(),
+  audienceAll: z.boolean().optional(),
+  targets: z.array(audienceTargetInput).max(50).optional(),
+});
+
 export function slugify(value: string): string {
   return value
     .toLowerCase()

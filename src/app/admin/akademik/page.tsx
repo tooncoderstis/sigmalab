@@ -44,12 +44,26 @@ export default async function AdminAkademikPage() {
           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Kelola tahun ajaran, program, kelas, dan pengguna instansi.
           </p>
-          <Link
-            href="/admin/akademik/rapor"
-            className="btn-secondary btn-small mt-4 inline-block"
-          >
-            Rapor &amp; Penilaian
-          </Link>
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Link
+              href="/admin/akademik/rapor"
+              className="btn-secondary btn-small inline-block"
+            >
+              Rapor &amp; Penilaian
+            </Link>
+            <Link
+              href="/admin/akademik/pengumuman"
+              className="btn-secondary btn-small inline-block"
+            >
+              Pengumuman
+            </Link>
+            <Link
+              href="/admin/akademik/kegiatan"
+              className="btn-secondary btn-small inline-block"
+            >
+              Kegiatan Sekolah
+            </Link>
+          </div>
         </div>
       </section>
 
