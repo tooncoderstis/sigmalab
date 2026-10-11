@@ -8,6 +8,15 @@ Status terkini: [`STATUS.md`](STATUS.md).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-11
+### Added
+- Fase 5 (SPP, notifikasi, audit, analitik): entitas `Invoice`, `Notification`, `AuditLog` + enum `InvoiceStatus`, `NotificationType` (ADR-0014).
+- API akademik: `invoices` (+`[invoiceId]`, `/generate`), `notifications` (+`[notificationId]/read`), `audit-logs`.
+- Lib: `billing` (status/denda/rekap + format Rupiah), `notify` (notifikasi in-app), `audit` (best-effort).
+- UI: SPP admin (`/admin/akademik/spp`), tagihan siswa (`/siswa/spp`) & wali; notifikasi (`/notifikasi` + tautan navbar); audit (`/admin/akademik/audit`); analitik (`/admin/akademik/analitik`).
+- Notifikasi otomatis + audit pada pembuatan/konfirmasi tagihan dan perubahan peran.
+- Uji: unit `billing`; route `invoices`.
+
 ## [0.5.0] - 2026-10-11
 ### Added
 - Fase 4 (perpustakaan & inventaris): entitas `LibraryBook`, `LibraryCopy`, `BookLoan`, `InventoryItem`, `InventoryMovement` + enum `LoanStatus`, `InventoryCategory`, `InventoryMovementType` (ADR-0013).

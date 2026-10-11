@@ -122,6 +122,13 @@ BACKLOG → gamifikasi, diskusi, mobile app, multi-tenant
 - Dikelola STAFF/ADMIN/SUPER_ADMIN di area `/staf/perpustakaan` & `/staf/inventaris`.
 - **Acceptance criteria**: buku hanya bisa dipinjam bila eksemplar `AVAILABLE`; pengembalian menghitung denda & mengubah status eksemplar; stok inventaris tidak negatif; pergerakan stok tercatat.
 
+### 4.16 SPP, Notifikasi, Audit & Analitik (FASE 5)
+- **SPP/tagihan**: `Invoice` per siswa (opsional per term) dengan status `DRAFT/UNPAID/PAID/CANCELLED/EXPIRED`; terbitkan per siswa atau generate massal per kelas; tandai lunas/batal.
+- **Notifikasi in-app**: `Notification` per pengguna + tandai dibaca; dibuat untuk tagihan baru/lunas.
+- **Audit trail**: `AuditLog` (aktor, aksi, entitas, metadata) pada aksi penting (tagihan, perubahan peran).
+- **Analitik**: dashboard KPI admin (akademik, keuangan SPP, perpustakaan/buku).
+- **Acceptance criteria**: siswa/wali hanya melihat tagihan miliknya; status tagihan berubah konsisten (lunas mencatat waktu bayar); notifikasi hanya milik pengguna terkait; audit mencatat aksi tanpa menggagalkan aksi utama; hanya ADMIN/SUPER_ADMIN melihat audit & analitik.
+
 ## 5. Model Data (ERD)
 
 Entitas utama (detail di `schema.prisma`):
