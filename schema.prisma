@@ -124,6 +124,24 @@ enum InventoryMovementType {
   ADJUST
 }
 
+// Status tagihan SPP
+enum InvoiceStatus {
+  DRAFT
+  UNPAID
+  PAID
+  CANCELLED
+  EXPIRED
+}
+
+// Jenis notifikasi in-app
+enum NotificationType {
+  INVOICE
+  GRADE
+  ANNOUNCEMENT
+  ACTIVITY
+  SYSTEM
+}
+
 enum CourseLevel {
   PEMULA
   MENENGAH
@@ -237,6 +255,12 @@ model User {
   bookLoans          BookLoan[]          @relation("BookLoanMember")
   createdBookLoans   BookLoan[]          @relation("BookLoanCreator")
   inventoryMovements InventoryMovement[] @relation("MovementBy")
+
+  // Fase 5: SPP/billing, notifikasi, audit
+  invoices        Invoice[]      @relation("InvoiceStudent")
+  createdInvoices Invoice[]      @relation("InvoiceCreator")
+  notifications   Notification[]
+  auditLogs       AuditLog[]     @relation("AuditActor")
 
   @@index([email])
 }
@@ -572,6 +596,7 @@ model Term {
   assessments    Assessment[]
   reportCards    ReportCard[]
   lessonPlans    LessonPlan[]
+  invoices       Invoice[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -1111,4 +1136,60 @@ model InventoryMovement {
 
   @@index([itemId])
   @@index([type])
+}
+
+// ============================================================
+// FASE 5: SPP/BILLING, NOTIFIKASI, AUDIT
+// ============================================================
+
+model Invoice {
+  id          String        @id @default(cuid())
+  studentId   String
+  student     User          @relation("InvoiceStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  termId      String?
+  term        Term?         @relation(fields: [termId], references: [id])
+  title       String
+  amount      Int // Rupiah
+  status      InvoiceStatus @default(UNPAID)
+  dueAt       DateTime?
+  paidAt      DateTime?
+  method      String?
+  note        String?
+  createdById String?
+  createdBy   User?         @relation("InvoiceCreator", fields: [createdById], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([studentId])
+  @@index([status])
+  @@index([termId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType @default(SYSTEM)
+  title     String
+  body      String?
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation("AuditActor", fields: [actorId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
 }

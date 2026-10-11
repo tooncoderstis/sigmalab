@@ -418,6 +418,44 @@ export const inventoryMovementInput = z.object({
   note: z.string().max(500).optional(),
 });
 
+// ============================================================
+// FASE 5 — SPP/billing, notifikasi
+// ============================================================
+
+export const invoiceStatusValues = [
+  "DRAFT",
+  "UNPAID",
+  "PAID",
+  "CANCELLED",
+  "EXPIRED",
+] as const;
+
+export const invoiceInput = z.object({
+  studentId: z.string().min(1),
+  termId: z.string().min(1).optional(),
+  title: z.string().min(1).max(200),
+  amount: z.number().int().min(0).max(1_000_000_000),
+  dueAt: z.coerce.date().optional(),
+  note: z.string().max(1000).optional(),
+});
+
+export const invoiceUpdateInput = z.object({
+  title: z.string().min(1).max(200).optional(),
+  amount: z.number().int().min(0).max(1_000_000_000).optional(),
+  status: z.enum(invoiceStatusValues).optional(),
+  dueAt: z.coerce.date().nullable().optional(),
+  method: z.string().max(100).nullable().optional(),
+  note: z.string().max(1000).nullable().optional(),
+});
+
+export const invoiceGenerateInput = z.object({
+  classId: z.string().min(1),
+  title: z.string().min(1).max(200),
+  amount: z.number().int().min(0).max(1_000_000_000),
+  dueAt: z.coerce.date().optional(),
+  termId: z.string().min(1).optional(),
+});
+
 export function slugify(value: string): string {
   return value
     .toLowerCase()

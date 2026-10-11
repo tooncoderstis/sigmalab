@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireApiRole, parseBody } from "@/lib/rbac";
 import { handleApiError } from "@/lib/api";
 import { roleValues } from "@/lib/validation";
+import { recordAudit } from "@/lib/audit";
 
 const grantInput = z.object({
   userId: z.string().min(1),
@@ -26,6 +27,14 @@ export async function POST(req: NextRequest) {
       update: {},
     });
 
+    await recordAudit({
+      actorId: authz.user.id,
+      action: "grant",
+      entity: "UserRole",
+      entityId: parsed.data.userId,
+      metadata: { role: parsed.data.role },
+    });
+
     return NextResponse.json({ data: role }, { status: 201 });
   } catch (error) {
     return handleApiError(error);
@@ -44,6 +53,14 @@ export async function DELETE(req: NextRequest) {
       where: {
         userId_role: { userId: parsed.data.userId, role: parsed.data.role },
       },
+    });
+
+    await recordAudit({
+      actorId: authz.user.id,
+      action: "revoke",
+      entity: "UserRole",
+      entityId: parsed.data.userId,
+      metadata: { role: parsed.data.role },
     });
 
     return NextResponse.json({ message: "Peran dicabut" });

@@ -2,6 +2,7 @@ import { auth } from "../../../auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { userHasRole } from "@/lib/rbac";
+import { formatRupiah } from "@/lib/billing";
 import FeedSections from "@/components/feed-sections";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -83,6 +84,15 @@ export default async function WaliPage() {
           copy: { include: { textbook: { select: { title: true } } } },
         },
         orderBy: { distributedAt: "desc" },
+        take: 100,
+      })
+    : [];
+
+  const invoices = studentIds.length
+    ? await prisma.invoice.findMany({
+        where: { studentId: { in: studentIds } },
+        include: { student: { select: { name: true } } },
+        orderBy: { createdAt: "desc" },
         take: 100,
       })
     : [];
@@ -174,6 +184,36 @@ export default async function WaliPage() {
                         </li>
                       ))
                 )}
+              </ul>
+            )}
+          </div>
+
+          <div className="card p-6">
+            <h2 className="text-lg font-bold mb-4">Tagihan Anak</h2>
+            {invoices.length === 0 ? (
+              <p className="text-sm text-gray-500">Belum ada tagihan.</p>
+            ) : (
+              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                {invoices.map((inv) => (
+                  <li
+                    key={inv.id}
+                    className="py-2 flex justify-between items-center text-sm"
+                  >
+                    <span>
+                      {inv.student.name} · {inv.title}
+                    </span>
+                    <span className="font-medium">
+                      {formatRupiah(inv.amount)} ·{" "}
+                      {inv.status === "PAID"
+                        ? "Lunas"
+                        : inv.status === "UNPAID"
+                          ? "Belum bayar"
+                          : inv.status === "CANCELLED"
+                            ? "Batal"
+                            : inv.status}
+                    </span>
+                  </li>
+                ))}
               </ul>
             )}
           </div>

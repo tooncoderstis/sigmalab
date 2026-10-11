@@ -151,6 +151,13 @@ export default function Navbar() {
                     >
                       Dashboard
                     </Link>
+                    <Link
+                      href="/notifikasi"
+                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      Notifikasi
+                    </Link>
                     {academicLinks.map((link) => (
                       <Link
                         key={link.href}
@@ -250,6 +257,13 @@ export default function Navbar() {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Dashboard
+                </Link>
+                <Link
+                  href="/notifikasi"
+                  className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-lg transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Notifikasi
                 </Link>
                 {academicLinks.map((link) => (
                   <Link

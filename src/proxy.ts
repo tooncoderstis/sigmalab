@@ -9,6 +9,7 @@ const rbacRules: { prefix: string; roles: string[] }[] = [
   { prefix: "/guru", roles: ["TEACHER", "ADMIN", "SUPER_ADMIN"] },
   { prefix: "/siswa", roles: ["STUDENT", "ADMIN", "SUPER_ADMIN"] },
   { prefix: "/wali", roles: ["GUARDIAN", "ADMIN", "SUPER_ADMIN"] },
+  { prefix: "/notifikasi", roles: [] },
   { prefix: "/dashboard", roles: [] },
 ];
 
@@ -56,5 +57,6 @@ export const config = {
     "/guru/:path*",
     "/siswa/:path*",
     "/wali/:path*",
+    "/notifikasi/:path*",
   ],
 };

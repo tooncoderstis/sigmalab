@@ -63,6 +63,24 @@ export default async function AdminAkademikPage() {
             >
               Kegiatan Sekolah
             </Link>
+            <Link
+              href="/admin/akademik/spp"
+              className="btn-secondary btn-small inline-block"
+            >
+              SPP / Tagihan
+            </Link>
+            <Link
+              href="/admin/akademik/audit"
+              className="btn-secondary btn-small inline-block"
+            >
+              Audit
+            </Link>
+            <Link
+              href="/admin/akademik/analitik"
+              className="btn-secondary btn-small inline-block"
+            >
+              Analitik
+            </Link>
           </div>
         </div>
       </section>

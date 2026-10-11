@@ -229,6 +229,16 @@ export default async function SiswaPage() {
             </div>
 
             <div className="card p-6 h-fit">
+              <h2 className="text-lg font-bold mb-2">SPP / Tagihan</h2>
+              <Link
+                href="/siswa/spp"
+                className="text-teal-600 hover:underline text-sm"
+              >
+                Lihat tagihan →
+              </Link>
+            </div>
+
+            <div className="card p-6 h-fit">
               <h2 className="text-lg font-bold mb-4">Rapor</h2>
               {reportCards.length === 0 ? (
                 <p className="text-sm text-gray-500">Belum ada rapor terbit.</p>
