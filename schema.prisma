@@ -51,6 +51,29 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+// Jenis aktivitas penilaian (Fase 2)
+enum AssessmentType {
+  TUGAS
+  ULANGAN
+  UTS
+  UAS
+  PRAKTIK
+  PROYEK
+}
+
+// Status pengumpulan tugas
+enum WorkflowStatus {
+  SUBMITTED
+  GRADED
+  RETURNED
+}
+
+// Status rapor
+enum ReportCardStatus {
+  DRAFT
+  PUBLISHED
+}
+
 enum CourseLevel {
   PEMULA
   MENENGAH
@@ -141,6 +164,13 @@ model User {
   attendanceRecords  AttendanceRecord[]   @relation("AttendanceStudent")
   markedAttendance   AttendanceRecord[]   @relation("AttendanceMarker")
   teacherAttendances TeacherAttendance[]  @relation("TeacherAttendance")
+
+  // Akademik (Fase 2): penilaian, tugas, rapor
+  createdAssessments    Assessment[]           @relation("AssessmentCreator")
+  assignmentSubmissions AssignmentSubmission[] @relation("AssignmentSubmitter")
+  grades                Grade[]                @relation("GradeStudent")
+  gradesGiven           Grade[]                @relation("GradeMarker")
+  reportCards           ReportCard[]           @relation("ReportCardStudent")
 
   @@index([email])
 }
@@ -473,6 +503,8 @@ model Term {
   endDate        DateTime?
   isActive       Boolean         @default(false)
   classes        AcademicClass[]
+  assessments    Assessment[]
+  reportCards    ReportCard[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 
@@ -503,6 +535,8 @@ model Subject {
   classes            AcademicClass[]
   assignments        TeachingAssignment[]
   attendanceSessions AttendanceSession[]
+  assessments        Assessment[]
+  reportEntries      ReportCardEntry[]
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
 
@@ -528,6 +562,7 @@ model AcademicClass {
   enrollments       ClassEnrollment[]
   assignments       TeachingAssignment[]
   sessions          AttendanceSession[]
+  assessments       Assessment[]
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
 
@@ -622,4 +657,113 @@ model TeacherAttendance {
   @@unique([teacherId, date])
   @@index([teacherId])
   @@index([date])
+}
+
+// ============================================================
+// AKADEMIK (FASE 2): PENILAIAN, TUGAS, NILAI, RAPOR
+// ============================================================
+
+// Aktivitas penilaian dalam sebuah kelas (analog AttendanceSession)
+model Assessment {
+  id          String                 @id @default(cuid())
+  classId     String
+  class       AcademicClass          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjectId   String?
+  subject     Subject?               @relation(fields: [subjectId], references: [id])
+  termId      String?
+  term        Term?                  @relation(fields: [termId], references: [id])
+  type        AssessmentType         @default(TUGAS)
+  title       String
+  description String?
+  maxScore    Int                    @default(100)
+  weight      Int                    @default(1)
+  dueAt       DateTime?
+  published   Boolean                @default(false) // nilai tampil ke siswa/wali bila true
+  createdById String?
+  createdBy   User?                  @relation("AssessmentCreator", fields: [createdById], references: [id])
+  grades      Grade[]
+  submissions AssignmentSubmission[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@index([classId])
+  @@index([subjectId])
+  @@index([termId])
+}
+
+// Berkas tugas yang diunggah siswa (metadata; berkas di object storage)
+model AssignmentSubmission {
+  id           String         @id @default(cuid())
+  assessmentId String
+  assessment   Assessment     @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      User           @relation("AssignmentSubmitter", fields: [studentId], references: [id], onDelete: Cascade)
+  fileKey      String
+  fileName     String
+  mimeType     String
+  fileSize     Int
+  notes        String?
+  status       WorkflowStatus @default(SUBMITTED)
+  submittedAt  DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([assessmentId, studentId])
+  @@index([assessmentId])
+  @@index([studentId])
+}
+
+// Nilai per siswa per aktivitas penilaian
+model Grade {
+  id           String     @id @default(cuid())
+  assessmentId String
+  assessment   Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      User       @relation("GradeStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  score        Float // 0..assessment.maxScore
+  feedback     String?
+  gradedById   String?
+  gradedBy     User?      @relation("GradeMarker", fields: [gradedById], references: [id])
+  gradedAt     DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([assessmentId, studentId])
+  @@index([assessmentId])
+  @@index([studentId])
+}
+
+// Rapor per siswa per term
+model ReportCard {
+  id           String            @id @default(cuid())
+  studentId    String
+  student      User              @relation("ReportCardStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  termId       String
+  term         Term              @relation(fields: [termId], references: [id], onDelete: Cascade)
+  status       ReportCardStatus  @default(DRAFT)
+  homeroomNote String?
+  pdfKey       String?
+  generatedAt  DateTime          @default(now())
+  publishedAt  DateTime?
+  updatedAt    DateTime          @updatedAt
+  entries      ReportCardEntry[]
+
+  @@unique([studentId, termId])
+  @@index([studentId])
+  @@index([termId])
+  @@index([status])
+}
+
+// Baris nilai per mapel dalam rapor
+model ReportCardEntry {
+  id           String     @id @default(cuid())
+  reportCardId String
+  reportCard   ReportCard @relation(fields: [reportCardId], references: [id], onDelete: Cascade)
+  subjectId    String
+  subject      Subject    @relation(fields: [subjectId], references: [id])
+  finalScore   Float
+  predicate    String
+  description  String?
+
+  @@unique([reportCardId, subjectId])
+  @@index([reportCardId])
+  @@index([subjectId])
 }

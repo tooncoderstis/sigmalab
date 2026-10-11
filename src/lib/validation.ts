@@ -1,4 +1,10 @@
 import { z } from "zod";
+import {
+  assignmentFileTypes,
+  MAX_ASSIGNMENT_FILE_BYTES,
+} from "@/lib/assignment-file";
+
+export { assignmentFileTypes, MAX_ASSIGNMENT_FILE_BYTES };
 
 export const roleValues = [
   "SUPER_ADMIN",
@@ -112,6 +118,82 @@ export const teacherAttendanceInput = z.object({
   status: z.enum(attendanceStatusValues).optional(),
   note: z.string().max(200).optional(),
   action: z.enum(["check-in", "check-out"]).optional(),
+});
+
+// ============================================================
+// FASE 2 — penilaian, tugas, rapor
+// ============================================================
+
+export const assessmentTypeValues = [
+  "TUGAS",
+  "ULANGAN",
+  "UTS",
+  "UAS",
+  "PRAKTIK",
+  "PROYEK",
+] as const;
+
+export const workflowStatusValues = ["SUBMITTED", "GRADED", "RETURNED"] as const;
+export const reportCardStatusValues = ["DRAFT", "PUBLISHED"] as const;
+
+export const assessmentInput = z.object({
+  classId: z.string().min(1),
+  subjectId: z.string().min(1).optional(),
+  termId: z.string().min(1).optional(),
+  type: z.enum(assessmentTypeValues).optional(),
+  title: z.string().min(1).max(200),
+  description: z.string().max(4000).optional(),
+  maxScore: z.number().int().positive().max(1000).optional(),
+  weight: z.number().int().positive().max(100).optional(),
+  dueAt: z.coerce.date().optional(),
+});
+
+export const assessmentUpdateInput = z.object({
+  subjectId: z.string().min(1).nullable().optional(),
+  termId: z.string().min(1).nullable().optional(),
+  type: z.enum(assessmentTypeValues).optional(),
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(4000).nullable().optional(),
+  maxScore: z.number().int().positive().max(1000).optional(),
+  weight: z.number().int().positive().max(100).optional(),
+  dueAt: z.coerce.date().nullable().optional(),
+  published: z.boolean().optional(),
+});
+
+export const gradeInput = z.object({
+  studentId: z.string().min(1),
+  score: z.number().min(0).max(1000),
+  feedback: z.string().max(2000).optional(),
+});
+
+export const gradeBulkInput = z.object({
+  grades: z.array(gradeInput).min(1),
+});
+
+export const assignmentSubmissionInput = z.object({
+  fileKey: z.string().min(1).max(500),
+  fileName: z.string().min(1).max(255),
+  mimeType: z.string().min(1).max(150),
+  fileSize: z.number().int().positive().max(MAX_ASSIGNMENT_FILE_BYTES),
+  notes: z.string().max(2000).optional(),
+});
+
+export const presignInput = z.object({
+  assessmentId: z.string().min(1),
+  fileName: z.string().min(1).max(255),
+  mimeType: z.enum(assignmentFileTypes),
+  fileSize: z.number().int().positive().max(MAX_ASSIGNMENT_FILE_BYTES),
+});
+
+export const reportCardGenerateInput = z.object({
+  studentId: z.string().min(1),
+  termId: z.string().min(1),
+  homeroomNote: z.string().max(4000).optional(),
+});
+
+export const reportCardUpdateInput = z.object({
+  status: z.enum(reportCardStatusValues).optional(),
+  homeroomNote: z.string().max(4000).nullable().optional(),
 });
 
 export function slugify(value: string): string {

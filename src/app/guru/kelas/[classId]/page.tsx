@@ -57,6 +57,12 @@ export default async function GuruClassPage({
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {kelas.program.name} · {kelas.term.academicYear.name} — {kelas.term.name}
           </p>
+          <Link
+            href={`/guru/kelas/${kelas.id}/assessment`}
+            className="btn-secondary btn-small mt-4 inline-block"
+          >
+            Penilaian &amp; Tugas
+          </Link>
         </div>
       </section>
 

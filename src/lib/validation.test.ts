@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   academicYearInput,
+  assessmentInput,
+  assignmentSubmissionInput,
   attendanceRecordInput,
   classInput,
+  gradeInput,
+  presignInput,
+  reportCardGenerateInput,
   slugify,
 } from "./validation";
 
@@ -43,6 +48,85 @@ describe("attendanceRecordInput", () => {
   it("menerima status valid", () => {
     expect(
       attendanceRecordInput.safeParse({ studentId: "s1", status: "LATE" }).success
+    ).toBe(true);
+  });
+});
+
+describe("assessmentInput", () => {
+  it("mewajibkan classId dan title", () => {
+    expect(assessmentInput.safeParse({ title: "UTS" }).success).toBe(false);
+    expect(
+      assessmentInput.safeParse({ classId: "c1", title: "UTS" }).success
+    ).toBe(true);
+  });
+
+  it("menolak jenis tidak dikenal", () => {
+    expect(
+      assessmentInput.safeParse({ classId: "c1", title: "UTS", type: "KUIS" })
+        .success
+    ).toBe(false);
+  });
+});
+
+describe("gradeInput", () => {
+  it("menolak nilai negatif", () => {
+    expect(
+      gradeInput.safeParse({ studentId: "s1", score: -1 }).success
+    ).toBe(false);
+  });
+
+  it("menerima nilai valid", () => {
+    expect(
+      gradeInput.safeParse({ studentId: "s1", score: 85 }).success
+    ).toBe(true);
+  });
+});
+
+describe("assignmentSubmissionInput", () => {
+  it("menolak berkas terlalu besar", () => {
+    expect(
+      assignmentSubmissionInput.safeParse({
+        fileKey: "assignments/a/s/f.pdf",
+        fileName: "f.pdf",
+        mimeType: "application/pdf",
+        fileSize: 20 * 1024 * 1024,
+      }).success
+    ).toBe(false);
+  });
+
+  it("menerima berkas valid", () => {
+    expect(
+      assignmentSubmissionInput.safeParse({
+        fileKey: "assignments/a/s/f.pdf",
+        fileName: "f.pdf",
+        mimeType: "application/pdf",
+        fileSize: 1024,
+      }).success
+    ).toBe(true);
+  });
+});
+
+describe("presignInput", () => {
+  it("menolak tipe mime yang tidak diizinkan", () => {
+    expect(
+      presignInput.safeParse({
+        assessmentId: "a1",
+        fileName: "x.exe",
+        mimeType: "application/x-msdownload",
+        fileSize: 100,
+      }).success
+    ).toBe(false);
+  });
+});
+
+describe("reportCardGenerateInput", () => {
+  it("mewajibkan studentId dan termId", () => {
+    expect(reportCardGenerateInput.safeParse({ studentId: "s1" }).success).toBe(
+      false
+    );
+    expect(
+      reportCardGenerateInput.safeParse({ studentId: "s1", termId: "t1" })
+        .success
     ).toBe(true);
   });
 });

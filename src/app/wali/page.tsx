@@ -43,6 +43,37 @@ export default async function WaliPage() {
       })
     : [];
 
+  const [assessments, reportCards] = await Promise.all([
+    studentIds.length
+      ? prisma.assessment.findMany({
+          where: {
+            published: true,
+            class: { enrollments: { some: { studentId: { in: studentIds } } } },
+          },
+          include: {
+            subject: { select: { name: true } },
+            class: { select: { name: true } },
+            grades: {
+              where: { studentId: { in: studentIds } },
+              include: { student: { select: { id: true, name: true } } },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 100,
+        })
+      : Promise.resolve([]),
+    studentIds.length
+      ? prisma.reportCard.findMany({
+          where: { studentId: { in: studentIds }, status: "PUBLISHED" },
+          include: {
+            student: { select: { name: true } },
+            term: { include: { academicYear: true } },
+          },
+          orderBy: { generatedAt: "desc" },
+        })
+      : Promise.resolve([]),
+  ]);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <section className="section-padding bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -95,6 +126,67 @@ export default async function WaliPage() {
                     <span className="font-medium">
                       {STATUS_LABEL[r.status] ?? r.status}
                     </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="card p-6">
+            <h2 className="text-lg font-bold mb-4">Nilai Terbaru</h2>
+            {assessments.length === 0 ? (
+              <p className="text-sm text-gray-500">Belum ada nilai terbit.</p>
+            ) : (
+              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                {assessments.flatMap((a) =>
+                  a.grades.length === 0
+                    ? [
+                        <li key={a.id} className="py-2 text-sm text-gray-500">
+                          {a.class.name} · {a.subject?.name ?? "Tanpa mapel"} —{" "}
+                          {a.title}: belum ada nilai
+                        </li>,
+                      ]
+                    : a.grades.map((g) => (
+                        <li
+                          key={`${a.id}-${g.id}`}
+                          className="py-2 flex justify-between items-center text-sm"
+                        >
+                          <span>
+                            {g.student.name} · {a.class.name} · {a.title}
+                          </span>
+                          <span className="font-medium">
+                            {g.score} / {a.maxScore}
+                          </span>
+                        </li>
+                      ))
+                )}
+              </ul>
+            )}
+          </div>
+
+          <div className="card p-6">
+            <h2 className="text-lg font-bold mb-4">Rapor</h2>
+            {reportCards.length === 0 ? (
+              <p className="text-sm text-gray-500">Belum ada rapor terbit.</p>
+            ) : (
+              <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                {reportCards.map((rc) => (
+                  <li
+                    key={rc.id}
+                    className="py-2 flex justify-between items-center text-sm"
+                  >
+                    <span>
+                      {rc.student.name} · {rc.term.academicYear.name} —{" "}
+                      {rc.term.name}
+                    </span>
+                    <a
+                      href={`/api/academic/report-cards/${rc.id}/pdf`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-teal-600 hover:underline"
+                    >
+                      Unduh
+                    </a>
                   </li>
                 ))}
               </ul>

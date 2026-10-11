@@ -1,5 +1,6 @@
 import { auth } from "../../../auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { userHasRole } from "@/lib/rbac";
 
@@ -20,7 +21,14 @@ export default async function SiswaPage() {
 
   const userId = session.user.id;
 
-  const [enrollments, records] = await Promise.all([
+  const classIds = (
+    await prisma.classEnrollment.findMany({
+      where: { studentId: userId },
+      select: { classId: true },
+    })
+  ).map((e) => e.classId);
+
+  const [enrollments, records, assessments, reportCards] = await Promise.all([
     prisma.classEnrollment.findMany({
       where: { studentId: userId },
       include: {
@@ -38,6 +46,22 @@ export default async function SiswaPage() {
       include: { session: { include: { class: true } } },
       orderBy: { markedAt: "desc" },
       take: 50,
+    }),
+    classIds.length
+      ? prisma.assessment.findMany({
+          where: { classId: { in: classIds }, published: true },
+          include: {
+            subject: { select: { name: true } },
+            class: { select: { name: true } },
+            grades: { where: { studentId: userId }, select: { score: true } },
+          },
+          orderBy: { createdAt: "desc" },
+        })
+      : Promise.resolve([]),
+    prisma.reportCard.findMany({
+      where: { studentId: userId, status: "PUBLISHED" },
+      include: { term: { include: { academicYear: true } } },
+      orderBy: { generatedAt: "desc" },
     }),
   ]);
 
@@ -106,18 +130,78 @@ export default async function SiswaPage() {
                 </ul>
               )}
             </div>
+
+            <div className="card p-6">
+              <h2 className="text-lg font-bold mb-4">Tugas &amp; Nilai</h2>
+              {assessments.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                  Belum ada tugas atau nilai yang dipublikasikan.
+                </p>
+              ) : (
+                <ul className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {assessments.map((a) => (
+                    <li
+                      key={a.id}
+                      className="py-3 flex justify-between items-center gap-4 text-sm"
+                    >
+                      <div>
+                        <Link
+                          href={`/siswa/tugas/${a.id}`}
+                          className="font-medium text-teal-600 hover:underline"
+                        >
+                          {a.title}
+                        </Link>
+                        <p className="text-gray-500">
+                          {a.class.name} · {a.subject?.name ?? "Tanpa mapel"}
+                        </p>
+                      </div>
+                      <span className="font-semibold shrink-0">
+                        {a.grades[0] ? `${a.grades[0].score} / ${a.maxScore}` : "—"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
 
-          <div className="card p-6 h-fit">
-            <h2 className="text-lg font-bold mb-4">Ringkasan Kehadiran</h2>
-            <ul className="space-y-2 text-sm">
-              {Object.entries(STATUS_LABEL).map(([key, label]) => (
-                <li key={key} className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">{label}</span>
-                  <span className="font-semibold">{summary[key] ?? 0}</span>
-                </li>
-              ))}
-            </ul>
+          <div className="space-y-6">
+            <div className="card p-6 h-fit">
+              <h2 className="text-lg font-bold mb-4">Ringkasan Kehadiran</h2>
+              <ul className="space-y-2 text-sm">
+                {Object.entries(STATUS_LABEL).map(([key, label]) => (
+                  <li key={key} className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">{label}</span>
+                    <span className="font-semibold">{summary[key] ?? 0}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card p-6 h-fit">
+              <h2 className="text-lg font-bold mb-4">Rapor</h2>
+              {reportCards.length === 0 ? (
+                <p className="text-sm text-gray-500">Belum ada rapor terbit.</p>
+              ) : (
+                <ul className="space-y-2 text-sm">
+                  {reportCards.map((rc) => (
+                    <li key={rc.id} className="flex justify-between items-center">
+                      <span>
+                        {rc.term.academicYear.name} — {rc.term.name}
+                      </span>
+                      <a
+                        href={`/api/academic/report-cards/${rc.id}/pdf`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-teal-600 hover:underline"
+                      >
+                        Unduh
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       </section>
