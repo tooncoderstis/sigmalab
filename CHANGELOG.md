@@ -8,6 +8,12 @@ Status terkini: [`STATUS.md`](STATUS.md).
 
 ## [Unreleased]
 ### Added
+- Fase 2A (penilaian, tugas, nilai & rapor): entitas `Assessment`, `AssignmentSubmission`, `Grade`, `ReportCard`, `ReportCardEntry` + enums (ADR-0010).
+- API akademik: `assessments`, `assessments/[assessmentId]` (ubah/hapus/terbit), `assessments/[assessmentId]/grades` (input nilai massal), `assessments/[assessmentId]/submissions`, `uploads/presign` & `uploads/download`, `report-cards` (hasilkan), `report-cards/[reportCardId]` (terbit) dan `.../pdf` (rapor PDF).
+- Unggah berkas tugas siswa ke object storage S3-compatible (Cloudflare R2/MinIO) via presigned URL + validasi tipe/ukuran (ADR-0009, merevisi ADR-0004).
+- Rapor PDF server-side dengan `@react-pdf/renderer`; nilai akhir berbobot & predikat A/B/C/D di `src/lib/report-card.ts`.
+- UI: guru (daftar aktivitas + input nilai + unduh berkas), siswa (kumpul tugas + nilai + rapor), wali (nilai & rapor), admin (kelola & terbitkan rapor).
+- Uji: unit komputasi nilai/predikat & skema validasi Fase 2; route handler assessments/grades/presign/report-cards; uji render PDF.
 - Fase 1 (akademik inti): tahun ajaran & term, program (sekolah/bimbel/kuliah), mapel, kelas (rombel), keanggotaan siswa, dan penugasan guru (ADR-0008).
 - Presensi siswa per sesi (HADIR/TERLAMBAT/ALPA/SAKIT/IZIN) dan presensi harian guru (check-in/check-out).
 - Peran multi-peran via `UserRole` (`SUPER_ADMIN`, `ADMIN`, `TEACHER`, `STUDENT`, `GUARDIAN`, `STAFF`, + `LEARNER`/`REVIEWER`) dan RBAC berlapis: `proxy.ts` (pengganti `middleware` Next 16) + `requireApiRole()` di route handler (ADR-0007).
@@ -19,6 +25,8 @@ Status terkini: [`STATUS.md`](STATUS.md).
 ### Changed
 - Sesi NextAuth memuat `role` (utama) dan `roles` (daftar multi-peran); `User`/`JWT` di-augmentasi.
 - Migrasi DB non-destruktif + backfill `UserRole` dari `User.role` untuk user lama.
+- Dependensi baru: `@aws-sdk/client-s3`, `@aws-sdk/s3-request-presigner`, `@react-pdf/renderer`; `@react-pdf/renderer` di-`serverExternalPackages`.
+- Env baru: `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`.
 
 ## [0.1.0] - 2026-09-27
 ### Added

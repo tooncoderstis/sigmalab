@@ -102,7 +102,12 @@ BACKLOG → gamifikasi, diskusi, mobile app, multi-tenant
 - **Acceptance criteria**: guru hanya bisa mengisi presensi kelas yang diampu; rekap presensi tersedia untuk siswa & wali.
 
 ### 4.13 Penilaian & Kegiatan (FASE 2)
-- Tugas, nilai, rapor sederhana, kegiatan sekolah/manajerial, pengumuman.
+- Aktivitas penilaian per kelas/mapel (TUGAS/ULANGAN/UTS/UAS/PRAKTIK/PROYEK) dengan skor maksimum & bobot.
+- Tugas: siswa mengunggah berkas (object storage S3-compatible — ADR-0009); guru mengunduh & menilai.
+- Nilai per siswa per aktivitas; nilai akhir mapel = rata-rata berbobot; predikat A/B/C/D.
+- Rapor per siswa per term (PDF, `@react-pdf/renderer`), alur draf → terbit (dipublikasikan).
+- Kegiatan sekolah/manajerial dan pengumuman (menyusul: sub-fase 2B/2C).
+- **Acceptance criteria**: guru pengampu dapat membuat aktivitas & mengisi nilai hanya untuk kelas yang diampu; siswa/wali hanya melihat nilai/rapor yang sudah dipublikasikan; nilai akhir dihitung dari aktivitas terpublikasi; rapor dapat diunduh sebagai PDF.
 
 ## 5. Model Data (ERD)
 
@@ -200,12 +205,13 @@ Constraint penting:
 | 4 | Outbound ke Mayar gagal (mis. timeout) | Sedang | Timeout + error handling, alert, retry (sudah ada dasar di route) |
 | 5 | Scope melebar (redesain UI) | Sedang | UI redesign sebagai track terpisah, di-hold |
 | 6 | Kehilangan data DB | Tinggi | Backup terjadwal (`pg_dump`), uji restore |
+| 7 | Kebocoran berkas tugas (object storage) | Sedang | Presigned URL berumur pendek, validasi tipe/ukuran, URL akses dicek per peran (ADR-0009) |
 
 ## 10. Out of Scope
 
 - **Redesain UI/UX visual** — di-hold, punya strategi terpisah dari pemilik produk.
 - OAuth/SSO, 2FA, mobile app.
-- Unggah file submission ke object storage (ditunda; fase awal pakai link repo — ADR-0004).
+- Unggah file submission **marketplace** ke object storage (fase awal pakai link repo — ADR-0004). *Berkas tugas akademik kini DIDUKUNG via ADR-0009.*
 - Langganan/paket berulang & multi-tenant instansi.
 - Diskusi komunitas, gamifikasi, forum.
 
@@ -225,4 +231,4 @@ Constraint penting:
 | 10 | Model penyewa | Satu instansi per deploy (tanpa `tenantId`) |
 | 11 | Peran | Multi-peran (`UserRole`) + RBAC berlapis (ADR-0007) |
 | 12 | Domain akademik | `AcademicClass` terpisah dari `Course`; presensi per sesi (ADR-0008) |
-| 13 | Penilaian & rapor | Fase 2 (ditunda) |
+| 13 | Penilaian & rapor | Fase 2 dikerjakan bertahap: penilaian/tugas/rapor PDF + storage S3 (ADR-0009, ADR-0010); kegiatan & pengumuman menyusul |
