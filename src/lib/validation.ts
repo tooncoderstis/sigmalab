@@ -355,6 +355,69 @@ export const distributionReturnInput = z.object({
   note: z.string().max(500).optional(),
 });
 
+// ============================================================
+// FASE 4 — perpustakaan & inventaris
+// ============================================================
+
+export const loanStatusValues = ["LENT", "RETURNED", "OVERDUE", "LOST"] as const;
+export const inventoryCategoryValues = ["ATK", "SARPRAS", "LAINNYA"] as const;
+export const inventoryMovementTypeValues = ["IN", "OUT", "ADJUST"] as const;
+
+export const libraryBookInput = z.object({
+  title: z.string().min(1).max(200),
+  author: z.string().max(200).optional(),
+  publisher: z.string().max(200).optional(),
+  isbn: z.string().max(30).optional(),
+  category: z.string().max(100).optional(),
+  description: z.string().max(4000).optional(),
+  coverUrl: z.string().max(500).optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const libraryBookUpdateInput = libraryBookInput.partial();
+
+export const libraryCopyInput = z.object({
+  code: z.string().min(1).max(60),
+  conditionNote: z.string().max(500).optional(),
+});
+
+export const libraryCopyUpdateInput = z.object({
+  status: z.enum(copyStatusValues).optional(),
+  conditionNote: z.string().max(500).nullable().optional(),
+});
+
+export const bookLoanInput = z.object({
+  copyId: z.string().min(1),
+  memberId: z.string().min(1),
+  dueAt: z.coerce.date().optional(),
+  note: z.string().max(500).optional(),
+});
+
+export const bookLoanReturnInput = z.object({
+  status: z.enum(["RETURNED", "LOST"]).optional(),
+  note: z.string().max(500).optional(),
+});
+
+export const inventoryItemInput = z.object({
+  name: z.string().min(1).max(200),
+  category: z.enum(inventoryCategoryValues).optional(),
+  unit: z.string().max(30).optional(),
+  quantity: z.number().int().min(0).optional(),
+  minQuantity: z.number().int().min(0).optional(),
+  location: z.string().max(200).optional(),
+  note: z.string().max(1000).optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const inventoryItemUpdateInput = inventoryItemInput.partial();
+
+export const inventoryMovementInput = z.object({
+  itemId: z.string().min(1),
+  type: z.enum(inventoryMovementTypeValues),
+  quantity: z.number().int().min(0),
+  note: z.string().max(500).optional(),
+});
+
 export function slugify(value: string): string {
   return value
     .toLowerCase()

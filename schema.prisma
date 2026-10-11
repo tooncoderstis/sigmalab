@@ -102,6 +102,28 @@ enum DistributionStatus {
   LOST
 }
 
+// Status peminjaman perpustakaan
+enum LoanStatus {
+  LENT
+  RETURNED
+  OVERDUE
+  LOST
+}
+
+// Kategori inventaris
+enum InventoryCategory {
+  ATK
+  SARPRAS
+  LAINNYA
+}
+
+// Jenis pergerakan stok inventaris
+enum InventoryMovementType {
+  IN
+  OUT
+  ADJUST
+}
+
 enum CourseLevel {
   PEMULA
   MENENGAH
@@ -210,6 +232,11 @@ model User {
   textbooksCreated     Textbook[]             @relation("TextbookCreator")
   textbookLoans        TextbookDistribution[] @relation("DistributionStudent")
   createdDistributions TextbookDistribution[] @relation("DistributionCreator")
+
+  // Fase 4: perpustakaan & inventaris
+  bookLoans          BookLoan[]          @relation("BookLoanMember")
+  createdBookLoans   BookLoan[]          @relation("BookLoanCreator")
+  inventoryMovements InventoryMovement[] @relation("MovementBy")
 
   @@index([email])
 }
@@ -994,4 +1021,94 @@ model TextbookDistribution {
   @@index([copyId])
   @@index([studentId])
   @@index([status])
+}
+
+// ============================================================
+// FASE 4: PERPUSTAKAAN & INVENTARIS ATK/SARPRAS
+// ============================================================
+
+model LibraryBook {
+  id          String        @id @default(cuid())
+  title       String
+  author      String?
+  publisher   String?
+  isbn        String?       @unique
+  category    String?
+  description String?
+  coverUrl    String?
+  isActive    Boolean       @default(true)
+  copies      LibraryCopy[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([title])
+}
+
+model LibraryCopy {
+  id            String      @id @default(cuid())
+  bookId        String
+  book          LibraryBook @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  code          String      @unique
+  status        CopyStatus  @default(AVAILABLE)
+  conditionNote String?
+  loans         BookLoan[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([bookId])
+  @@index([status])
+}
+
+model BookLoan {
+  id          String      @id @default(cuid())
+  copyId      String
+  copy        LibraryCopy @relation(fields: [copyId], references: [id], onDelete: Cascade)
+  memberId    String
+  member      User        @relation("BookLoanMember", fields: [memberId], references: [id], onDelete: Cascade)
+  status      LoanStatus  @default(LENT)
+  borrowedAt  DateTime    @default(now())
+  dueAt       DateTime?
+  returnedAt  DateTime?
+  fine        Int         @default(0)
+  note        String?
+  createdById String?
+  createdBy   User?       @relation("BookLoanCreator", fields: [createdById], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([copyId])
+  @@index([memberId])
+  @@index([status])
+}
+
+model InventoryItem {
+  id          String              @id @default(cuid())
+  name        String
+  category    InventoryCategory   @default(ATK)
+  unit        String              @default("pcs")
+  quantity    Int                 @default(0)
+  minQuantity Int                 @default(0)
+  location    String?
+  note        String?
+  isActive    Boolean             @default(true)
+  movements   InventoryMovement[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  @@index([category])
+}
+
+model InventoryMovement {
+  id        String                @id @default(cuid())
+  itemId    String
+  item      InventoryItem         @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  type      InventoryMovementType
+  quantity  Int
+  note      String?
+  byId      String?
+  by        User?                 @relation("MovementBy", fields: [byId], references: [id])
+  createdAt DateTime              @default(now())
+
+  @@index([itemId])
+  @@index([type])
 }

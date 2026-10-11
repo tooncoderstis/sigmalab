@@ -31,6 +31,24 @@ export default async function StafPage() {
               Katalog buku, eksemplar, dan distribusi ke siswa.
             </p>
           </Link>
+          <Link
+            href="/staf/perpustakaan"
+            className="card p-6 hover:shadow-lg transition-all"
+          >
+            <h2 className="font-bold text-lg">Perpustakaan</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Katalog &amp; sirkulasi peminjaman buku.
+            </p>
+          </Link>
+          <Link
+            href="/staf/inventaris"
+            className="card p-6 hover:shadow-lg transition-all"
+          >
+            <h2 className="font-bold text-lg">Inventaris</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Stok ATK &amp; sarpras beserta pergerakan.
+            </p>
+          </Link>
         </div>
       </section>
     </div>
