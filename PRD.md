@@ -116,6 +116,12 @@ BACKLOG → gamifikasi, diskusi, mobile app, multi-tenant
 - Ketersediaan dihitung dari eksemplar `AVAILABLE`; distribusi mengubah status eksemplar.
 - **Acceptance criteria**: guru pengampu mengelola RPP hanya untuk kelasnya; eksemplar tidak bisa dipinjam dua kali (hanya `AVAILABLE`); distribusi tercatat dan dapat dikembalikan/ditandai hilang; berkas e-book hanya dapat diunggah saat storage dikonfigurasi.
 
+### 4.15 Perpustakaan & Inventaris (FASE 4)
+- **Perpustakaan**: katalog `LibraryBook`, eksemplar `LibraryCopy` (kode unik + status), sirkulasi `BookLoan` (pinjam/kembali/hilang, tenggat, denda keterlambatan).
+- **Inventaris ATK/sarpras**: `InventoryItem` (kategori, satuan, jumlah, stok minimum) + `InventoryMovement` (IN/OUT/ADJUST) sebagai jejak pergerakan.
+- Dikelola STAFF/ADMIN/SUPER_ADMIN di area `/staf/perpustakaan` & `/staf/inventaris`.
+- **Acceptance criteria**: buku hanya bisa dipinjam bila eksemplar `AVAILABLE`; pengembalian menghitung denda & mengubah status eksemplar; stok inventaris tidak negatif; pergerakan stok tercatat.
+
 ## 5. Model Data (ERD)
 
 Entitas utama (detail di `schema.prisma`):

@@ -8,6 +8,14 @@ Status terkini: [`STATUS.md`](STATUS.md).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-11
+### Added
+- Fase 4 (perpustakaan & inventaris): entitas `LibraryBook`, `LibraryCopy`, `BookLoan`, `InventoryItem`, `InventoryMovement` + enum `LoanStatus`, `InventoryCategory`, `InventoryMovementType` (ADR-0013).
+- API akademik: `library-books` (+`[bookId]`, `/copies`), `library-copies/[copyId]`, `book-loans` (+`[loanId]`), `inventory-items` (+`[itemId]`), `inventory-movements`.
+- UI staf: `/staf/perpustakaan` (katalog + eksemplar + sirkulasi) & `/staf/inventaris` (stok + pergerakan).
+- Lib murni: `library` (denda/keterlambatan) & `inventory` (perhitungan stok, stok minimum).
+- Uji: unit `library` & `inventory`; route `book-loans` & `inventory-movements`.
+
 ## [0.4.0] - 2026-10-11
 ### Added
 - Fase 3 (kurikulum/RPP & buku ajar): entitas `LessonPlan`, `Textbook`, `TextbookCopy`, `TextbookDistribution` + enum `LessonPlanStatus`, `CopyStatus`, `DistributionStatus` (ADR-0012).
