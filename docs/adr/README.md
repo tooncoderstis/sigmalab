@@ -17,5 +17,6 @@ Aturan: satu keputusan = satu file. Jangan ubah ADR lama; bila keputusan berubah
 | [0009](0009-storage-objek-tugas.md) | Penyimpanan file tugas siswa (S3-compatible) | Diterima |
 | [0010](0010-domain-penilaian-rapor.md) | Domain penilaian, tugas & rapor (Fase 2) | Diterima |
 | [0011](0011-pengumuman-kegiatan.md) | Pengumuman & kegiatan sekolah (audiens + tanda dibaca) | Diterima |
+| [0012](0012-kurikulum-rpp-textbook.md) | Kurikulum/RPP & buku ajar (Fase 3) | Diterima |
 
 Template: [`0000-template.md`](0000-template.md).
