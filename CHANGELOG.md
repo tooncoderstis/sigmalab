@@ -7,6 +7,8 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com) dan proyek ini m
 Status terkini: [`STATUS.md`](STATUS.md).
 
 ## [Unreleased]
+
+## [0.2.0] - 2026-10-11
 ### Added
 - Fase 2A (penilaian, tugas, nilai & rapor): entitas `Assessment`, `AssignmentSubmission`, `Grade`, `ReportCard`, `ReportCardEntry` + enums (ADR-0010).
 - API akademik: `assessments`, `assessments/[assessmentId]` (ubah/hapus/terbit), `assessments/[assessmentId]/grades` (input nilai massal), `assessments/[assessmentId]/submissions`, `uploads/presign` & `uploads/download`, `report-cards` (hasilkan), `report-cards/[reportCardId]` (terbit) dan `.../pdf` (rapor PDF).

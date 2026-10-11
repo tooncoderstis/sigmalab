@@ -5,7 +5,7 @@
 > **Jangan simpan kredensial di file ini.**
 
 - **Terakhir diperbarui**: 2026-10-11
-- **Versi terbaru**: tag source `v0.1.0`; pekerjaan Fase 1 **belum di-tag & belum di-deploy**
+- **Versi terbaru**: tag source `v0.2.0` (Fase 1 + Fase 2A); deploy produksi menyusul
 - **Platform**: Next.js 16.3 (App Router, TS) + Prisma 5 + PostgreSQL + NextAuth v5 · Node 22 · Payment: Mayar (sandbox) · Deploy: EasyPanel VPS (Docker image)
 
 ## TL;DR (konteks 30 detik)
