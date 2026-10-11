@@ -19,5 +19,6 @@ Aturan: satu keputusan = satu file. Jangan ubah ADR lama; bila keputusan berubah
 | [0011](0011-pengumuman-kegiatan.md) | Pengumuman & kegiatan sekolah (audiens + tanda dibaca) | Diterima |
 | [0012](0012-kurikulum-rpp-textbook.md) | Kurikulum/RPP & buku ajar (Fase 3) | Diterima |
 | [0013](0013-perpustakaan-inventaris.md) | Perpustakaan & inventaris ATK/sarpras (Fase 4) | Diterima |
+| [0014](0014-spp-notifikasi-audit-analitik.md) | SPP/billing, notifikasi, audit & analitik (Fase 5) | Diterima |
 
 Template: [`0000-template.md`](0000-template.md).
